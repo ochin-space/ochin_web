@@ -8,6 +8,6 @@ require 'SQLiteConstructor.php';
 require 'Config.php';
 //use App\SQLiteConstructor as SQLiteConstructor;
 $dbConstructor_main = new SQLiteConstructor_main();
-$ochin_db = $dbConstructor_main->connect(Config_main::ochin_db);
+$ochin_db = $dbConstructor_main->connect(dirname(__DIR__, 1)."/".Config_main::ochin_db);
 session_start();
 ?>

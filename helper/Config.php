@@ -6,7 +6,7 @@
 */ 
 class Config_main {
     const topbar_path = 'navbar.php';
-    const ochin_db = '/var/www/html/ochin/db/ochin.db';
+    const ochin_db = 'db/ochin.db';
     const uploadImgPath = 'uploads/imgs/';
     const jQueryPath = "lib/jquery-3.6.0.min.js";
 	const bootstrapCSSpath = "lib/bootstrap-5.0.1-dist/css/bootstrap.min.css";
