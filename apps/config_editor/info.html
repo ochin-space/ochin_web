@@ -1,0 +1,124 @@
+The "Hardware Configuration" is web a tool that allows you to modify the "boot/config.txt" file.<br>
+<p><i>from <a href="https://www.raspberrypi.org/documentation/computers/config_txt.html" target="_blank">https://www.raspberrypi.org/documentation/computers/config_txt.html</a>  website</i><br>
+<h5>What is config.txt?</h5>
+The Raspberry Pi uses a configuration file instead of the BIOS you would expect to find on a conventional PC. The system configuration parameters, 
+which would traditionally be edited and stored using a BIOS, are stored instead in an optional text file named config.txt. 
+This is read by the GPU before the ARM CPU and Linux are initialised. It must therefore be located on the first (boot) partition of your SD card, 
+alongside bootcode.bin and start.elf. This file is normally accessible as /boot/config.txt from Linux, and must be edited as root.<br><br>
+
+<h5>File Format</h5>
+The config.txt file is read by the early-stage boot firmware, so it has a very simple file format. The format is a single property=value 
+statement on each line, where value is either an integer or a string. Comments may be added, or existing config values may be commented 
+out and disabled, by starting a line with the # character.<br>
+There is an 80 character line length limit to entries, any characters past this limit will be ignored.<br><br>
+
+<h5>gpu_mem</h5>
+Specifies how much memory, in megabytes, to reserve for the exclusive use of the GPU: the remaining memory is allocated to the ARM CPU for use by the OS.
+For Pis with less than 1GB of memory, the default is 64; for Pis with 1GB or more of memory the default is 76.<br>
+The memory allocated to the GPU is used for display, 3D, Codec and camera purposes as well as some basic firmware housekeeping. The maximums specified below 
+assume you are using all these features. If you are not, then smaller values of gpu_mem can be used.<br>
+To ensure the best performance of Linux, you should set gpu_mem to the lowest possible value. If a particular graphics feature is not working correctly, try 
+increasing the value of gpu_mem, being mindful of the recommended maximums shown below.
+<br><font color="red">Important:<br> Unlike GPU’s found on x86 machines, where increasing memory can improve 3D performance, the architecture of the VideoCore means there is no performance
+advantage from specifying values larger than is necessary, and in fact it can harm performance.</font><br>
+On the Raspberry Pi 4 the 3D component of the GPU has its own memory management unit (MMU), and does not use memory from the gpu_mem allocation. Instead memory 
+is allocated dynamically within Linux.<br><br>
+
+<h5>total_mem</h5>
+This parameter can be used to force a Raspberry Pi to limit its memory capacity: specify the total amount of RAM, in megabytes, you wish the Raspberry Pi to use.
+<br>For example, to make a 4GB Raspberry Pi 4B behave as though it were a 1GB model, use the following:<br>
+total_mem=1024<br><br>
+
+<h5>disable_l2cache</h5>
+Setting this to 1 disables the CPU’s access to the GPU’s L2 cache and requires a corresponding L2 disabled kernel. Default value on BCM2835 is 0. On BCM2836, BCM2837, 
+and BCM2711, the ARMs have their own L2 cache and therefore the default is 1. The standard Pi kernel.img and kernel7.img builds reflect this difference in cache setting.<br><br>
+
+<h5>Composite Video Mode</h5>
+sdtv_mode<br>
+The sdtv_mode command defines the TV standard used for composite video output. On the original Raspberry Pi, composite video is output on the RCA socket. 
+On other Raspberry Pi’s, except for Pi Zero and Compute Module, composite video is output along with sound on the 4 pole TRRS ("headphone") socket. 
+On the Pi Zero, there is an unpopulated header labelled "TV" which outputs composite video. On the Compute Module, composite video is available via the TVDAC pin. 
+The default value of sdtv_mode is 0.<br><br>
+--------------------------------------------------------------------------------------------<br>
+sdtv_mode -> result<br>
+--------------------------------------------------------------------------------------------<br>
+0  -> Normal NTSC<br>
+1  -> Japanese version of NTSC — no pedestal<br>
+2  -> Normal PAL<br>
+3  -> Brazilian version of PAL — 525/60 rather than 625/50, different subcarrier<br>
+16 -> Progressive scan NTSC<br>
+18 -> Progressive scan PAL<br>
+--------------------------------------------------------------------------------------------<br><br>
+<h5>sdtv_aspect</h5>
+The sdtv_aspect command defines the aspect ratio for composite video output. The default value is 1.<br>
+--------------------------------------------------------------------------------------------<br>
+sdtv_aspect -> result<br>
+--------------------------------------------------------------------------------------------<br>
+1 -> 4:3<br>
+2 -> 14:9<br>
+3 -> 16:9<br>
+--------------------------------------------------------------------------------------------<br><br>
+
+<h5>sdtv_disable_colourburst</h5>
+Setting sdtv_disable_colourburst to 1 disables colourburst on composite video output. The picture will be displayed in monochrome, but it may appear sharper.<br><br>
+
+<h5>enable_tvout</h5>
+On the Raspberry Pi 4, composite output is disabled by default, due to the way the internal clocks are interrelated and allocated. Because composite video 
+requires a very specific clock, setting that clock to the required speed on the Pi 4 means that other clocks connected to it are detrimentally affected, 
+which slightly slows down the entire system. Since composite video is a less commonly used function, we decided to disable it by default to prevent this system slowdown.<br>
+To enable composite output, use the enable_tvout=1 option. As described above, this will detrimentally affect performance to a small degree.<br>
+On older Pi models, the composite behaviour remains the same.<br><br>
+
+<h5>disable_overscan</h5>
+
+Set disable_overscan to 1 to disable the default values of overscan that is set by the firmware. The default value of overscan for the left, right, top, and bottom edges 
+is 48 for HD CEA modes, 32 for SD CEA modes, and 0 for DMT modes. The default value for disable_overscan is 0.<br>
+Note<br>
+	Any further additional overscan options such as overscan_scale or overscan edges can still be applied after this option.<br><br>
+
+<h5>overscan_left</h5>
+The overscan_left command specifies the number of pixels to add to the firmware default value of overscan on the left edge of the screen. The default value is 0.<br>
+Increase this value if the text flows off the left edge of the screen; decrease it if there is a black border between the left edge of the screen and the text.<br><br>
+
+<h5>overscan_right</h5>
+The overscan_right command specifies the number of pixels to add to the firmware default value of overscan on the right edge of the screen. The default value is 0.<br>
+Increase this value if the text flows off the right edge of the screen; decrease it if there is a black border between the right edge of the screen and the text.<br><br>
+
+<h5>overscan_top</h5>
+The overscan_top command specifies the number of pixels to add to the firmware default value of overscan on the top edge of the screen. The default value is 0.<br>
+Increase this value if the text flows off the top edge of the screen; decrease it if there is a black border between the top edge of the screen and the text.<br><br>
+
+<h5>overscan_bottom</h5>
+The overscan_bottom command specifies the number of pixels to add to the firmware default value of overscan on the bottom edge of the screen. The default value is 0.<br>
+Increase this value if the text flows off the bottom edge of the screen; decrease it if there is a black border between the bottom edge of the screen and the text.<br><br>
+
+<h5>overscan_scale</h5>
+Set overscan_scale to 1 to force any non-framebuffer layers to conform to the overscan settings. The default value is 0.<br>
+NOTE: this feature is generally not recommended: it can reduce image quality because all layers on the display will be scaled by the GPU. Disabling overscan on the display 
+itself is the recommended option to avoid images being scaled twice (by the GPU and the display).<br><br>
+
+<h5>framebuffer_width</h5>
+The framebuffer_width command specifies the console framebuffer width in pixels. The default is the display width minus the total horizontal overscan.<br><br>
+
+<h5>framebuffer_height</h5>
+The framebuffer_height command specifies the console framebuffer height in pixels. The default is the display height minus the total vertical overscan.<br>
+max_framebuffer_heigh`t, `max_framebuffer_width<br>
+Specifies the maximum dimensions that the internal frame buffer is allowed to be.<br><br>
+
+<h5>framebuffer_depth</h5>
+Use framebuffer_depth to specify the console framebuffer depth in bits per pixel. The default value is 16.
+--------------------------------------------------------------------------------------------<br>
+framebuffer_depth -> result 	notes
+--------------------------------------------------------------------------------------------<br>
+8 -> 8bit framebuffer Default RGB palette makes screen unreadable<br>
+16 -> 16bit framebuffer<br>
+24 -> 24bit framebuffer. May result in a corrupted display<br>
+32 -> 32bit framebuffer. May need to be used in conjunction with framebuffer_ignore_alpha=1
+--------------------------------------------------------------------------------------------<br><br>
+
+<h5>framebuffer_ignore_alpha</h5>
+Set framebuffer_ignore_alpha to 1 to disable the alpha channel. Can help with the display of a 32bit framebuffer_depth.
+<br><br>
+for more settings please take a look at the official website:<br> <a href="https://www.raspberrypi.org/documentation/computers/config_txt.html" target="_blank">https://www.raspberrypi.org/documentation/computers/config_txt.html</a>
+
+

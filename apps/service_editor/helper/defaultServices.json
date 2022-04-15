@@ -1,0 +1,28 @@
+{
+    "defaultServices": [
+	{
+        "name":"ttyd_Linux_Console",
+        "cmd":"ttyd -p 8080 -t 'theme={\"background\": \"#5c005a\"}' -t cursorStyle=bar -t lineHeight=1.2 -t fontSize=18 bash",
+		"unitOptions":"After=multi-user.target",
+		"serviceOptions":"",
+		"installOptions":"WantedBy=multi-user.target",
+		"description":"ttyd_Linux_Console"
+    },
+	{
+        "name":"Cloud9_IDE",
+        "cmd":"sudo /opt/c9sdk/server.js -p 8888 -l ochin.local -a ochin:ochin -w /home/ochin/workspace",
+		"unitOptions":"After=multi-user.target",
+		"serviceOptions":"Restart=always \nExecStartPre=/bin/sleep 60",
+		"installOptions":"WantedBy=multi-user.target",
+		"description":"start Cloud9 IDE with 1min delay (waiting for wlan1 to startup)"
+    },
+	{
+        "name":"inav serial Logger",
+        "cmd":"sudo /home/ochin/ochin_services/inavLog -p /dev/ttyAMA0 -f /var/www/html/ochin/apps/LogViewer/blackbox-tools/logs/",
+		"unitOptions":"After=multi-user.target",
+		"serviceOptions":"Restart=always \nExecStartPre=/bin/sleep 60",
+		"installOptions":"WantedBy=multi-user.target",
+		"description":"start the serial logger for inav FC.\nThe log are shown in the 'Logs Viewer' app."
+    }
+	]
+}

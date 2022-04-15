@@ -1,0 +1,57 @@
+The "Addons Manager" is a web tool that has the purpose of managing additional software packages to the ochin_web environment.<br>
+<h5>What is an addon</h5>
+With the term "addon" we mean a software that is installed inside of the ochin_web basic structure, with the purpose of extending its functionality.<br>
+<br><h5>How to use the addons manager</h5>
+Inside the page there are three tables, the first table refers to the addons present in the "Configuration" tab present in the topbar.<br>
+The second table contains the list of addons present in the "Applications" tab present in the topbar.
+<br>The third table contains the addons that are not included in any of the previous tabs and will be displayed on the first level of the topbar, to the right of the "Configuration" menu.<br>
+By clicking on the "Upload a new Addon" button it is possible to upload a new addon in ".zip" format. Each new addon loaded will be inserted into the table assigned to it, as foreseen by its "install.xml" file.<br>
+Each addon can be managed by means of the "edit" button. By pressing "edit" a modal diaolog box will be opened.<br>
+From the modal dialog you can enable or disable the addon. If the addon is disabled, it remains in the system but is not displayed in the topbar.<br>
+By means of a select bar it is possible to choose whether to assign the addon to the "Applications", "Configuration", "Development" or "Topbar". In the last case, the addon will be shown on the zero level in the topbar. 
+From the "name" field you can change the name that will be displayed in the menu, while "folder name" is the path where the addon will be saved, inside of the "/var/www/html/ochin/addons/" folder.
+<br>By clicking the "Delete" button, the folder that contain the addon will be delated and the addon removed from the addons database.
+<br>
+<br><h5>The structure of an addon</h5>
+The addon packages are self-contained, therefore they integrate everything they need and do not rely in any way on the basic structure. 
+For example, if the addon needs to rely on a database, it must contain it and cannot use the main database used for user data.<br>
+In addition to the code needed to manage the web pages (ex. html, js, php ..), the addon can contain other software that works in the background and completes the functionality of the addon. 
+The web part and the code in the background can work synchronously, therefore exchanging information continuously or being asynchronous, the important thing is that the two parts contribute to achieving the same purpose.<br>
+<br><h5> "A couple of examples" </h5>
+Live View addon <br>
+The purpose of this addon is to display up to 4 video streams within the same html page.<br> 
+In order for the video streams to be acquired and transmitted, the addon uses a software written in python which is managed as a service through the "Systemctl Services" page.<br> 
+The web part of the application does nothing but display the video streams within the html page.<br>
+This addon is an example in which the software running in the background is used in a "synchronous" way with the web application, in the sense that the output produced by the sw in the background is used immediately by the web page.
+<br><br>INAV LogViewer addon <br>
+This addon is intended to record INAV flight logs and allow them to be viewed via the web interface.
+The web part can be used to review old logs or upload new ones.
+<br>However, it is also possible to start at boot a software written in C++ which remains in polling on the serial line waiting for the telemetry data from the flight controller and save them to a file. 
+Each time the addon is opened from the ochin_web topbar, it checks for new log files and eventually loads them into the logbook.<br> 
+In this case the addon integrates both the web application and the background sw, but they work "asynchronously", in the sense that the web application uses the logs only after they have been registered.<br>
+In this case the webapp doesn't rely on the background software since it can be used watch the old logs.<br>
+<br><h5>Developing a new addon</h5>
+The easy way to develop a new addon is to start from the example template. It contains all the files needed to create a page with a table, connected to an internal sqlite database.
+<br> Let's see in detail what's in the package:<br>
+<br>install.xml <br>
+This file is needed for the addon manager to know how to import the whole package.It contains the following fields: <br>
+&lt;install&gt; <br>
+&emsp;&lt;addon name = 'Template'&gt;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The name that will shown in the topbar<br>
+&emsp;&emsp;&lt;en&gt; false &lt;/en&gt;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; Set the addon as enabled or disables<br>
+&emsp;&emsp;&lt;topbarpos> Application &lt;/topbarpos&gt;&emsp;&emsp;&emsp;&emsp;  The position in the Topbar<br>
+&emsp;&emsp;&lt;foldername> template &lt;/foldername&gt;&emsp;&emsp;&emsp;&emsp; The name of the containing folder. This is the link to the addon.<br>
+&emsp;&emsp;&lt;description> addon template &lt;/description&gt;&emsp;&emsp;A brief description of the addon.<br>
+&emsp;&lt;/addon&gt;<br>
+&lt;/install&gt;<br>
+<br>index.php<br>
+This is the first page of the addon. It contains the html, js and php to load the data from the database and show them on a table.
+<br><br>icon folder<br>
+This folder contains the icons used in in the table (add, check, uncheck, info) 
+<br><br>helper folder<br>
+This folder contains some helper files like config.php wich contains the links to the libraries and SQLiteConstructor.php wich contains the functions to handle the database.
+<br><br>db folder<br>
+This folder contains the SQLite database of the addon.
+<br><br>css folder<br>
+This folder contains the style sheet files.
+<br><br>
+Once the addon is ready to be imported, it can be zipped and uploaded from the Addon Manager.

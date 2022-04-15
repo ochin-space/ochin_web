@@ -1,0 +1,37 @@
+{
+    "defaultMapServer": [
+	{
+        "name":"openstreetmap.org",
+        "url1":"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    },
+	{
+        "name":"openstreetmap.fr",
+        "url1":"https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+        "url2":"https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+        "url3":"https://c.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+    },
+	{
+        "name":"openstreetmap.de",
+        "url1":"https://a.tile.openstreetmap.de/{z}/{x}/{y}.png",
+        "url2":"https://b.tile.openstreetmap.de/{z}/{x}/{y}.png",
+        "url3":"https://c.tile.openstreetmap.de/{z}/{x}/{y}.png"
+    },
+	{
+        "name":"opentopomap.org",
+        "url1":"https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "url2":"https://b.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "url3":"https://c.tile.opentopomap.org/{z}/{x}/{y}.png"
+    },
+	{
+        "name":"thunderforest_landscape.com",
+        "url1":"https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=e0defdbbc87744ddb07a61bb84a18b9e"
+    },
+	{
+        "name":"thunderforest_outdoors.com",
+        "url1":"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=e0defdbbc87744ddb07a61bb84a18b9e"
+    }
+	]
+}
+
+
+

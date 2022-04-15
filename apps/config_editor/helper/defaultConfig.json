@@ -1,0 +1,104 @@
+{
+    "defaultConfig": [
+	{
+        "name":"enable USB",
+        "cmd":"dtoverlay=dwc2,dr_mode=host",
+		"description":"Enable the 4ports USB hub"
+    },
+	{
+        "name":"overscan_left",
+        "cmd":"overscan_left=0",
+		"description":"Move the left margin of the DISPLAY. Negative numbers to move the margin to the left."
+    },
+	{
+        "name":"overscan_right",
+        "cmd":"overscan_right=0",
+		"description":"Move the right margin of the DISPLAY. Negative numbers to move the margin to the right."
+    },
+	{
+        "name":"overscan_top",
+        "cmd":"overscan_top=0",
+		"description":"Move the top margin of the DISPLAY. Negative numbers to move the margin to the top."
+    },
+	{
+        "name":"overscan_bottom",
+        "cmd":"overscan_bottom=0",
+		"description":"Move the bottom margin of the DISPLAY. Negative numbers to move the margin to the bottom."
+    },
+	{
+        "name":"enable UART0",
+        "cmd":"dtoverlay=uart0",
+		"description":"Enable the UART0 async serial port"
+    },
+	{
+        "name":"enable UART3",
+        "cmd":"dtoverlay=uart3",
+		"description":"Enable the UART3 async serial port"
+    },
+	{
+        "name":"enable UART4 FlowCtrl",
+        "cmd":"dtoverlay=uart4,ctsrts",
+		"description":"Enable the UART4 serial sync port"
+    },
+	{
+        "name":"enable UART5",
+        "cmd":"dtoverlay=uart5",
+		"description":"Enable the UART4 serial async port. This is the uart used for serial console, see /boot/cmdline.txt ...console=ttyAMA2,115200"
+    },
+	{
+        "name":"Disable BT",
+        "cmd":"dtoverlay=disable-bt",
+		"description":"Disable to Bluetooth module"
+    },
+	{
+        "name":"BOOT_UART",
+        "cmd":"BOOT_UART=1",
+		"description":"Enable uarts at boot"
+    },
+	{
+        "name":"Enable TVout",
+        "cmd":"enable_tvout=1",
+		"description":"Enable TVout instead of HDMI."
+    },
+	{
+        "name":"Composite PAL",
+        "cmd":"sdtv_mode=2",
+		"description":"Set the TVout as PAL.0->NTSC, 1->Japanese NTSC, 2->PAL, 3->Brazilian PAL, 16->Progressive scan NTSC, 17->Progeressive scan PAL"
+    },
+	{
+        "name":"GPU Memory",
+        "cmd":"gpu_mem=128",
+		"description":"Set GPU memory size"
+    },
+	{
+        "name":"Start X",
+        "cmd":"start_x=1",
+		"description":"Start the GUI manager at boot"
+    },
+	{
+        "name":"Enable DRM VC4 V3D driver",
+        "cmd":"dtoverlay=vc4-fkms-v3d",
+		"description":"Enable the GPU acceleration driver"
+    },
+	{
+        "name":"Enable Audio",
+        "cmd":"dtparam=audio=on",
+		"description":"Enable Audio"
+    },
+	{
+        "name":"SPI On",
+        "cmd":"dtparam=spi=on",
+		"description":"Enable SPI serial interface"
+    },
+	{
+        "name":"I2S On",
+        "cmd":"dtparam=i2s=on",
+		"description":"Enable Inter-IC Sound"
+    },
+	{
+        "name":"I2C On",
+        "cmd":"dtparam=i2c_arm=on",
+		"description":"Enable SPI serial interface"
+    }
+	]
+}

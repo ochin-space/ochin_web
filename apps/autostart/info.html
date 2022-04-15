@@ -1,0 +1,18 @@
+The "Autostart SW at Boot" is web a tool that allows you to start a software at the end of the boot procedure.<br>
+All the istances created are displayed in a table that allows you to edit or delete them. <br>
+<h5>Add a new Cmd Line</h5>By pressing the "Add New Cmd Line +" icon on the top right edge of the table, you create a new empty row in the table. Once the new row is created you can edit
+in order to start your software. <br><br>
+<h5>Edit</h5>
+By pressing the "edit" button corresponding to the Cmd Line of interest, a popup will be opened, from which it is possible to modify the parameters of the Cmd Line itself. <br>
+In the upper part of the modal window there is a selection box, from which it is possible to select a Cmd Line among those present by default. To add or remove module from the default list, you need to edit the file "/var/www/html/ochin/apps/autostart/helper/defaultautostart.json". <br>
+The Checkbox lets you enable or disable the Cmd Line. If the Cmd Line is disabled, is still saved but commented out.<br>
+The "Name:" field contains is the name in the table. <br>
+The "Cmd Line:" field contain the command line to execute at boot. In order to make it work please locate the executable using absolute path.<br>
+The "Description:" field contains a description of the Cmd Line, useful for noting the characteristics and functionalities of the software. <br><br>
+<br><br>
+<h5>What this tool actually does</h5>
+At the end of the boot session, the administrator execute the "/etc/rc.local" file.<br>
+It happends after the other system services are started, at the end of the process of switching to a multiuser runlevel.<br>
+This tools appends at the end of "/etc/rc.local" file the command line added to the table.<br>
+It means that the software that you add to the table are executed <u>by root</u> at boot.<br>
+In orter to run the software in background an not locking the console, you should add "&" at th end of the Cmd Line, but <u>you don't have to</u>, because this tool does it for you.<br>

@@ -1,0 +1,23 @@
+The "Kernel Modules editor" is web a tool that allows you to select new modules to be started at system boot by means of the modprobe manager.<br>
+All the kernel modules added are displayed in a table that allows you to edit or delete them. <br>
+<h5>Add a new Kernel Module</h5>By pressing the "Add New Module +" icon on the top right edge of the table, you create a new empty row in the table. Once the new row is created you can edit
+in order to start your new Kernel Module. <br><br>
+<h5>Edit a Module</h5>By pressing the "edit" button corresponding to the module of interest, a popup will be opened, from which it is possible to modify the parameters of the kernel module itself. <br>
+In the upper part of the modal window there is a selection box, from which it is possible to select a kernel module among those present by default. To add or remove module from the default list, you need to edit the file "/var/www/html/ochin/apps/modules_editor/helper/default_modules.json". <br>
+The "Name:" field contains is the name in the table. <br>
+The "Module name:" field contains is the name of the module to start. <br>
+The "Options:" field contains the options related to the module. <br>
+The "Description:" field contains a description of the kernel module, useful for noting the characteristics and functionalities of the module. <br><br>
+<h5>Delete a Module</h5>By pressing the "delete" button corresponding to the module of interest, you can delete the module from the table. <br><br>
+<h5>Manual tool</h5>By pressing the "Manual" button corresponding to the kernel module of interest a popup will be opened. On the "Manual" modal window it is possible to load, unload or check the status of the kernel module and see the results in a terminal console.
+<br><br>
+<h5>What this tool actually does</h5>
+To start a kernel module at boot you need to create a couple of files:<br>
+1)The module file /etc/modules-load.d/moduleName.conf , contain the name of the kernel module to start.<br>
+2)The options file /etc/modprobe.d/moduleName.conf , contain the option related to the kernel module to start.<br>
+Note that the two files must have the same name.<br>
+Once the files are created, the kernel module could be loaded with the following script:<br><br>
+<i>sudo modprobe moduleName options</i><br><br>
+To unload the module we use the following script:<br><br>
+<i>sudo modprobe -r moduleName options</i><br><br>
+To avoid to load the kernel module on the next boot we have to remove the created files.<br>

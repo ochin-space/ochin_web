@@ -1,0 +1,9 @@
+{
+    "defaultConfig": [
+	{
+        "name":"videoxToDISPLAY",
+        "cmd":"sudo startx `which python3` /home/ochin/workspace/python/videox2DISPLAY/main.py -v 0 -- :0",
+		"description":"start the sw at boot, it sends the /dev/videox source to the DISPLAY"
+    }
+	]
+}

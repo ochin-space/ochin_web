@@ -1,0 +1,22 @@
+{
+    "selectLine": [
+	{
+        "name":"loopback5",
+        "options":"devices=1 exclusive_caps=1 video_nr=5 card_label=\"loopback5\"",
+        "module_name":"v4l2loopback",
+		"description":"Create one virtual video device"
+    },
+	{
+        "name":"loopback5_6",
+        "options":"devices=2 exclusive_caps=1,1 video_nr=5,6 card_label=\"loopback5_6\"",
+        "module_name":"v4l2loopback",
+		"description":"Create two virtual video devices"
+    },
+	{
+        "name":"loopback5_6_7",
+        "options":"devices=3 exclusive_caps=1,1,1 video_nr=5,6,7 card_label=\"loopback5_6_7\"",
+        "module_name":"v4l2loopback",
+		"description":"Create three virtual video devices"
+    }
+	]
+}
