@@ -5,14 +5,14 @@
 * The LICENSE file is included in the project's root. 
 */  
 if(isset($_POST['video'])) {
-	echo shell_exec("sudo v4l2-ctl --list-devices");
+	echo shell_exec("ls /dev/video*");//v4l2-ctl --list-devices");
 }
 
 if(isset($_POST['usb'])) {
-	echo shell_exec("sudo lsusb");
+	echo shell_exec("lsusb");
 }
 
 if(isset($_POST['services'])) {
-	echo shell_exec("sudo systemctl --type=service --state=active");
+	echo shell_exec("systemctl --type=service --state=active");
 } 
 ?>

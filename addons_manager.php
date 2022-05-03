@@ -58,6 +58,15 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 		
 		if(is_file("tmp/".$_POST['filename'])) unlink("tmp/".$_POST['filename']); //delete file
 	}	
+
+	function isClientLocal()
+	{
+		$clientNet =  pathinfo($_SERVER['REMOTE_ADDR'],PATHINFO_FILENAME);
+		$serverNet = pathinfo($_SERVER['SERVER_ADDR'],PATHINFO_FILENAME);
+		$result=0;
+		if(strcmp($serverNet,$clientNet)==0) $result=1; else $result=0;
+		echo $result;
+	}
 ?>
 
 <!doctype html>
@@ -76,6 +85,9 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 <title>öchìn Web GUI</title>
 </head>
     <body style="background-color:#f2f2f2;">
+	<div class="row">	
+		<div id="banner" class="fs-5 p-2 mb-1 bg-warning text-dark text-center">This client is not connected locally. For security reasons, all functions that require advanced access to the operating system are inhibited. To use this web page it is necessary to be connected to the same subnet of the server.</div>
+	</div>
         <div class="container-xl">
 			<div class="row">	
 				<div class="col-sm-10">			
@@ -358,6 +370,20 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 </html>
 
 <script>
+isClientLocal();
+
+function isClientLocal()
+{ 
+	var banner = document.getElementById("banner");
+	if(<?php echo isClientLocal();?>)
+	{
+		banner.style.display = "none";
+	}
+	else
+	{
+		banner.style.display = "block";
+	}
+}
 
 function deleteRow()
 {

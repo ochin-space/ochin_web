@@ -5,6 +5,7 @@
 * The LICENSE file is included in the project's root. 
 */ 
 class Config {
+    const backgroundWorker_path = './../../backgroundWorker/source/';
     const topbar_path = '../../navbar.php';
     const autostart_db = 'db/autostart.db';
     const file_folder = '/etc/';

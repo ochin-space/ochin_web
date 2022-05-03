@@ -10,7 +10,8 @@ require 'helper/Config.php';
 
 if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true)) 
 {
-    if(isset($_POST['update'])) {
+    if(isset($_POST['update'])) 
+	{
 		configWiFi($_POST['en'],$_POST['name'],$_POST['ccode'],$_POST['mode'],$_POST['ssid'],$_POST['passw'],$_POST['staticipSw'],$_POST['ipaddress'],$_POST['netmask'],$_POST['dhcpstart'],$_POST['dhcpstop']);
     }
 	
@@ -55,6 +56,9 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 <title>öchìn Web GUI</title>
 </head>
     <body style="background-color:#f2f2f2;">
+	<div class="row">	
+		<div id="banner" class="fs-5 p-2 mb-1 bg-warning text-dark text-center">This client is not connected locally. For security reasons, all functions that require advanced access to the operating system are inhibited. To use this web page it is necessary to be connected to the same subnet of the server.</div>
+	</div>
         <div class="container-xl">
 			<div class="row">	
 				<div class="col-sm-10">			
@@ -227,7 +231,7 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
             <div class="modal-dialog modal-dialog-centered">
 				<div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addModalLabel">Are you sure you want to update the config and reboot the system?</h5>
+                        <h5 class="modal-title" id="addModalLabel">The changes will take effect after the next system reboot.<br>Are you sure you want to update the network configuration?</h5>
                     </div>
                     <div class="modal-footer">
                         <button type='button' class="btn btn-primary" data-bs-dismiss="modal" onclick="update()">Yes</button> 
@@ -273,6 +277,20 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 </html>
 
 <script>
+isClientLocal();
+
+function isClientLocal()
+{ 
+	var banner = document.getElementById("banner");
+	if(<?php echo isClientLocal();?>)
+	{
+		banner.style.display = "none";
+	}
+	else
+	{
+		banner.style.display = "block";
+	}
+}
 
 function check_TCPIP_Quartet(a,b,c,d)
 {
@@ -282,106 +300,118 @@ function check_TCPIP_Quartet(a,b,c,d)
 
 function update()
 {
-	document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-	en = document.getElementById('enableAdapter').checked;
-	mode = document.getElementById('modeSwitch').checked;
-	name = document.getElementById('adapter-name').innerHTML;
-	if(document.getElementById('ccode').value.length>=2 || mode==false) ccode = document.getElementById('ccode').value;
-	else
-	{
-		document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid Country Code</p>";
-		$('#alertModal').modal('show');
-		return;
-	}	
-	if(document.getElementById('ssid').value) ssid = document.getElementById('ssid').value;
-	else 
-	{
-		document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid SSID</p>";
-		$('#alertModal').modal('show');
-		return;
-	}
-	if(document.getElementById('passwd').value.length>=8) passw = document.getElementById('passwd').value;
-	else 
-	{
-		document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid Password (8 char min)</p>";
-		$('#alertModal').modal('show');
-		return;
-	}
-	staticipSw = document.getElementById('staticIpSwitch').checked;
-	if(staticipSw || mode)
-	{
-		a = document.getElementById('ipAddr0').value;
-		b = document.getElementById('ipAddr1').value;
-		c =document.getElementById('ipAddr2').value;
-		d = document.getElementById('ipAddr3').value;
-		if(check_TCPIP_Quartet(a,b,c,d)) ipaddress = a + "\." + b + "\." + c + "\." + d; 
-		else 
+	if(<?php echo isClientLocal();?>)
+	{		
+		en = document.getElementById('enableAdapter').checked;
+		mode = document.getElementById('modeSwitch').checked;
+		name = document.getElementById('adapter-name').innerHTML;
+		if(document.getElementById('ccode').value.length>=2 || mode==false) ccode = document.getElementById('ccode').value;
+		else
 		{
-			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid IP Address</p>";
+			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid Country Code</p>";
 			$('#alertModal').modal('show');
 			return;
+		}	
+		if(document.getElementById('ssid').value) ssid = document.getElementById('ssid').value;
+		else if(en==true)
+		{
+			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid SSID</p>";
+			$('#alertModal').modal('show');
+			return;
+		}
+		else ssid = "";
+		if(document.getElementById('passwd').value.length>=8) passw = document.getElementById('passwd').value;
+		else if(en==true)
+		{
+			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid Password (8 char min)</p>";
+			$('#alertModal').modal('show');
+			return;
+		}
+		else passw = "";
+		staticipSw = document.getElementById('staticIpSwitch').checked;
+		if(staticipSw || mode)
+		{
+			a = document.getElementById('ipAddr0').value;
+			b = document.getElementById('ipAddr1').value;
+			c =document.getElementById('ipAddr2').value;
+			d = document.getElementById('ipAddr3').value;
+			if(check_TCPIP_Quartet(a,b,c,d)) ipaddress = a + "\." + b + "\." + c + "\." + d; 
+			else 
+			{
+				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid IP Address</p>";
+				$('#alertModal').modal('show');
+				return;
+			}
+			
+			a = document.getElementById('nm0').value;
+			b = document.getElementById('nm1').value;
+			c =document.getElementById('nm2').value;
+			d = document.getElementById('nm3').value;
+			if(check_TCPIP_Quartet(a,b,c,d)) netmask = a + "\." + b + "\." + c + "\." + d; 
+			else 
+			{
+				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid NetMask</p>";
+				$('#alertModal').modal('show');
+				return;
+			}
+		}
+		else
+		{
+			ipaddress="";
+			netmask="";
 		}
 		
-		a = document.getElementById('nm0').value;
-		b = document.getElementById('nm1').value;
-		c =document.getElementById('nm2').value;
-		d = document.getElementById('nm3').value;
-		if(check_TCPIP_Quartet(a,b,c,d)) netmask = a + "\." + b + "\." + c + "\." + d; 
-		else 
+		if(mode)
 		{
-			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid NetMask</p>";
-			$('#alertModal').modal('show');
-			return;
+			a = document.getElementById('dhcps0').value;
+			b = document.getElementById('dhcps1').value;
+			c =document.getElementById('dhcps2').value;
+			d = document.getElementById('dhcps3').value;
+			if(check_TCPIP_Quartet(a,b,c,d)) dhcpstart = a + "\." + b + "\." + c + "\." + d; 
+			else 
+			{
+				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid DHCP Start Ip Address</p>";
+				$('#alertModal').modal('show');
+				return;
+			}
+			
+			a = document.getElementById('dhcpe0').value;
+			b = document.getElementById('dhcpe1').value;
+			c =document.getElementById('dhcpe2').value;
+			d = document.getElementById('dhcpe3').value;
+			if(check_TCPIP_Quartet(a,b,c,d)) dhcpstop = a + "\." + b + "\." + c + "\." + d; 
+			else 
+			{
+				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid DHCP Stop Ip Address</p>";
+				$('#alertModal').modal('show');
+				return;
+			}
 		}
+		else
+		{
+			dhcpstart="";
+			dhcpstop="";
+		}
+		//alert("en:"+en+" name:"+name+" mode:"+mode+" ssid:"+ssid+" passw:"+passw+" staticipSw:"+staticipSw);
+		//alert("ipaddress:"+ipaddress+" netmask:"+netmask+" dhcpstart:"+dhcpstart+" dhcpstop:"+dhcpstop);
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "update&en=" + en + "&name=" + name+ "&ccode=" + ccode + "&mode=" + mode + "&ssid=" + ssid + "&passw=" + passw 
+			+ "&staticipSw=" + staticipSw + "&ipaddress=" + ipaddress + "&netmask=" + netmask + "&dhcpstart=" + dhcpstart 
+			+ "&dhcpstop=" + dhcpstop,
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() {  }
+		});
 	}
 	else
 	{
-		ipaddress="";
-		netmask="";
+		alert("The client is not connected locally. The operation is denied!");
 	}
-	
-	if(mode)
-	{
-		a = document.getElementById('dhcps0').value;
-		b = document.getElementById('dhcps1').value;
-		c =document.getElementById('dhcps2').value;
-		d = document.getElementById('dhcps3').value;
-		if(check_TCPIP_Quartet(a,b,c,d)) dhcpstart = a + "\." + b + "\." + c + "\." + d; 
-		else 
-		{
-			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid DHCP Start Ip Address</p>";
-			$('#alertModal').modal('show');
-			return;
-		}
-		
-		a = document.getElementById('dhcpe0').value;
-		b = document.getElementById('dhcpe1').value;
-		c =document.getElementById('dhcpe2').value;
-		d = document.getElementById('dhcpe3').value;
-		if(check_TCPIP_Quartet(a,b,c,d)) dhcpstop = a + "\." + b + "\." + c + "\." + d; 
-		else 
-		{
-			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid DHCP Stop Ip Address</p>";
-			$('#alertModal').modal('show');
-			return;
-		}
-	}
-	else
-	{
-		dhcpstart="";
-		dhcpstop="";
-	}
-	//alert("en:"+en+" name:"+name+" mode:"+mode+" ssid:"+ssid+" passw:"+passw+" staticipSw:"+staticipSw);
-	//alert("ipaddress:"+ipaddress+" netmask:"+netmask+" dhcpstart:"+dhcpstart+" dhcpstop:"+dhcpstop);
-    $.ajax({
-        type : "POST",  //type of method
-        url  : "index.php",  //your page
-        data: "update&en=" + en + "&name=" + name+ "&ccode=" + ccode + "&mode=" + mode + "&ssid=" + ssid + "&passw=" + passw 
-		+ "&staticipSw=" + staticipSw + "&ipaddress=" + ipaddress + "&netmask=" + netmask + "&dhcpstart=" + dhcpstart 
-		+ "&dhcpstop=" + dhcpstop,
-        success: function(msg){  },
-        error: function() {  }
-    });
 }
 
 function STAmode()
@@ -392,7 +422,7 @@ function STAmode()
 	document.getElementById('dhcp_startIpBox').classList.add("visually-hidden");
 	document.getElementById('dhcp_stopIpBox').classList.add("visually-hidden");
 	document.getElementById('ccodeBox').classList.add("visually-hidden");
-	document.getElementById('modeSwitchLabel').innerHTML = "Enable AP mode";
+	document.getElementById('modeSwitchLabel').innerHTML = "STA mode Enabled";
 	document.getElementById('ipAddr2').placeholder = "1";
 	staticIP();
 }
@@ -407,7 +437,7 @@ function APmode()
 	document.getElementById('dhcp_startIpBox').classList.remove("visually-hidden");
 	document.getElementById('dhcp_stopIpBox').classList.remove("visually-hidden");
 	document.getElementById('ccodeBox').classList.remove("visually-hidden");
-	document.getElementById('modeSwitchLabel').innerHTML = "Enable STA mode";
+	document.getElementById('modeSwitchLabel').innerHTML = "AP mode Enabled";
 	document.getElementById('ipAddrLabel').innerHTML = "AP IP Address:";
 	document.getElementById('ipAddr2').placeholder = "1";
 }
@@ -456,12 +486,12 @@ function enAdapter()
 {
 	if(document.getElementById('enableAdapter').checked)
 	{
-		document.getElementById('enableAdapterLabel').innerHTML = "Enable Adapter";
+		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Enabled";
 		modeSet();
 	}
 	else
 	{
-		document.getElementById('enableAdapterLabel').innerHTML = "Disable Adapter";
+		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Disabled";
 		adaptDisabled();
 	}
 }
@@ -500,13 +530,13 @@ editModal.addEventListener('show.bs.modal', function (event) {
 	if(adapterStat == 'UP')
 	{
 		document.getElementById('enableAdapter').checked = true;
-		document.getElementById('enableAdapterLabel').innerHTML = "Enable Adapter";
+		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Enabled";
 		STAmode();
 	}
 	else
 	{
 		document.getElementById('enableAdapter').checked = false;
-		document.getElementById('enableAdapterLabel').innerHTML = "Disable Adapter";
+		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Disabled";
 		adaptDisabled();
 	}
 })

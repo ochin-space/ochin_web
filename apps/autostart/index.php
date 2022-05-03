@@ -11,17 +11,25 @@ $dbConstructor->createTable_autostart();
 if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true)) 
 {
     $rows = $dbConstructor->getRows_autostart();
-    if(isset($_POST['delete'])) {
-        $dbConstructor->deleteRow_autostart($_POST['id']);
-        delete_a_line(Config::file_folder.'rc.local', $_POST['cmd_line']);
+    if(isset($_POST['delete'])) 
+	{
+		$dbConstructor->deleteRow_autostart($_POST['id']);
+		return delete_a_line(Config::file_folder.'rc.local', $_POST['cmd_line']);
     }
-    if(isset($_POST['update'])) {
-        $dbConstructor->updateRow_autostart($_POST['id'], $_POST['en'], $_POST['name'], SQLite3::escapeString($_POST['new_cmd_line']), $_POST['description']);
-        $enable = ($_POST['en'] === 'true');
-        replace_a_line(Config::file_folder.'rc.local', $enable, $_POST['cmd_line'], $_POST['new_cmd_line']);
+    if(isset($_POST['update'])) 
+	{		
+		$enable = ($_POST['en'] === 'true');
+		$response = replace_a_line(Config::file_folder.'rc.local', $enable, $_POST['cmd_line'], $_POST['new_cmd_line']);
+		if($response==1)
+		{
+			$dbConstructor->updateRow_autostart($_POST['id'], $_POST['en'], $_POST['name'], SQLite3::escapeString($_POST['new_cmd_line']), $_POST['description']);
+		}
+		echo $response; 
+		exit();
     }
-    if(isset($_POST['add'])) {
-        $dbConstructor->insertRow_autostart('','','','');
+    if(isset($_POST['add'])) 
+	{
+		return $dbConstructor->insertRow_autostart('','','','');
     }
 	
 	function getSelectHTML()
@@ -71,16 +79,20 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 		$xml = simplexml_load_file("tmp/".$_POST['filename']);
 		foreach ($xml->item as $item) :		 
 			if($dbConstructor->cmdlineCheck(SQLite3::escapeString($item->cmdline))==0)
-			{			
-				$lastid = $dbConstructor->insertRow_autostart($item->en, SQLite3::escapeString($item->attributes()->name),
-				SQLite3::escapeString($item->cmdline), SQLite3::escapeString($item->description));
-				
-				$enable = ($item->en === 'true');
-				replace_a_line(Config::file_folder.'rc.local', $enable, SQLite3::escapeString($item->cmdline), SQLite3::escapeString($item->cmdline));
+			{		
+				if($item->en == 'true') $enable = true;
+				else $enable = false;
+				$response = replace_a_line(Config::file_folder.'rc.local', $enable, SQLite3::escapeString($item->cmdline), SQLite3::escapeString($item->cmdline));
+				if($response==1)
+				{
+					$dbConstructor->insertRow_autostart($item->en, SQLite3::escapeString($item->attributes()->name),
+						SQLite3::escapeString($item->cmdline), SQLite3::escapeString($item->description));
+				}				
 			}
 		endforeach;
 		if(is_file("tmp/".$_POST['filename'])) unlink("tmp/".$_POST['filename']); //delete file
-	}	
+		return 1;
+	}
 ?>
 
 <!DOCTYPE html>
@@ -100,6 +112,9 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 <title>öchìn Web GUI</title>
 </head>
 <body style="background-color:#f2f2f2;">
+	<div class="row">	
+		<div id="banner" class="fs-5 p-2 mb-1 bg-warning text-dark text-center">This client is not connected locally. For security reasons, all functions that require advanced access to the operating system are inhibited. To use this web page it is necessary to be connected to the same subnet of the server.</div>
+	</div>
     <div class="container-xl">
         <div class="row">	
 			<div class="col-sm-10">			
@@ -304,62 +319,98 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 <script>
 
 var button;
+isClientLocal();
 
+function isClientLocal()
+{ 
+	var banner = document.getElementById("banner");
+	if(<?php echo isClientLocal();?>)
+	{
+		banner.style.display = "none";
+	}
+	else
+	{
+		banner.style.display = "block";
+	}
+}
+	
 function insertRow()
 {
-	document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-    $.ajax({
-        type : "POST",  //type of method
-        url  : "index.php",  //your page
-        data: "add=1",
-        success: function(msg)
-        {
-            location.reload(true);
-        },
-        error: function() {  }
-    });
+	if(<?php echo isClientLocal();?>)
+	{
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "add=1",
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 function deleteRow()
 {
-	document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-    id = document.getElementById('deleteModal-id').value;
-    //cmd_line = document.getElementById('autostart_Table').rows[id].cells[2].innerHTML;
-	cmd_line = decodeURIComponent(button.getAttribute('data-bs-cmd_line')).replace(/\+/g, ' ');
-    
-    $.ajax({
-        type : "POST",  //type of method
-        url  : "index.php",  //your page
-        data: "delete=1&id=" + id + "&cmd_line=" + cmd_line,
-        success: function(msg)
-        {
-            location.reload(true);
-        },
-        error: function() {  }
-    });
+	if(<?php echo isClientLocal();?>)
+	{
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		id = document.getElementById('deleteModal-id').value;
+		//cmd_line = document.getElementById('autostart_Table').rows[id].cells[2].innerHTML;
+		cmd_line = decodeURIComponent(button.getAttribute('data-bs-cmd_line')).replace(/\+/g, ' ');
+		
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "delete=1&id=" + id + "&cmd_line=" + cmd_line,
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 function updateRow()
 {
-	document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-    id = document.getElementById('recipient-id').value;
-    en = document.getElementById('enableCmdLn').checked;
-    name = document.getElementById('recipient-name').value;
-    descr = document.getElementById('recipient-name').value;
-    new_cmd_line = document.getElementById('recipient-cmd').value; //this is the cmd_line after editing
-    //cmd_line = document.getElementById('autostart_Table').rows[id].cells[2].innerHTML;
-	cmd_line = decodeURIComponent(button.getAttribute('data-bs-cmd_line')).replace(/\+/g, ' '); //this is the cmd_line before editing. It's needed to find and replace it in the file
-    description = document.getElementById('recipient-description').value;
-    $.ajax({
-        type : "POST",  //type of method
-        url  : "index.php",  //your page
-        data: "update=1&id=" + id + "&en=" + en + "&name=" + name + "&cmd_line=" + cmd_line + "&new_cmd_line=" + new_cmd_line + "&description=" + description,
-        success: function(msg)
-        {
-            location.reload(true);
-        },
-        error: function() {  }
-    });
+	if(<?php echo isClientLocal();?>)
+	{
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		id = document.getElementById('recipient-id').value;
+		en = document.getElementById('enableCmdLn').checked;
+		name = document.getElementById('recipient-name').value;
+		descr = document.getElementById('recipient-name').value;
+		new_cmd_line = document.getElementById('recipient-cmd').value; //this is the cmd_line after editing
+		//cmd_line = document.getElementById('autostart_Table').rows[id].cells[2].innerHTML;
+		cmd_line = decodeURIComponent(button.getAttribute('data-bs-cmd_line')).replace(/\+/g, ' '); //this is the cmd_line before editing. It's needed to find and replace it in the file
+		description = document.getElementById('recipient-description').value;
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "update=1&id=" + id + "&en=" + en + "&name=" + name + "&cmd_line=" + cmd_line + "&new_cmd_line=" + new_cmd_line + "&description=" + description,
+			success: function(msg)
+			{
+				if(msg!=1) alert(msg);
+				location.reload(true);
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 var deleteModal = document.getElementById('deleteModal');
@@ -470,48 +521,55 @@ async function uploadFile(files, location)
 
 function loadConfig()
 {
-	// Upload file
-	let input = document.createElement('input');
-	input.type = 'file';
-	input.onchange = _ => 
+	if(<?php echo isClientLocal();?>)
 	{
-		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-		let files =   Array.from(input.files);
-		var formData = new FormData();
-		formData.append("file", files[0]);
-		formData.append("location", "../tmp");
-		var xhttp = new XMLHttpRequest();
-		// Set POST method and ajax file path
-		xhttp.open("POST", "helper/uploadFile.php", true);
-		// call on request changes state
-		xhttp.onreadystatechange = function() 
+		// Upload file
+		let input = document.createElement('input');
+		input.type = 'file';
+		input.onchange = _ => 
 		{
-			if (this.readyState == 4 && this.status == 200) 
+			document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+			let files =   Array.from(input.files);
+			var formData = new FormData();
+			formData.append("file", files[0]);
+			formData.append("location", "../tmp");
+			var xhttp = new XMLHttpRequest();
+			// Set POST method and ajax file path
+			xhttp.open("POST", "helper/uploadFile.php", true);
+			// call on request changes state
+			xhttp.onreadystatechange = function() 
 			{
-				var response = this.responseText;
-				if(response == 1)
-				{			
-					$.ajax({
-						type : "POST",  //type of method
-						url  : "index.php",  //your page
-						processData: false,
-						data: "loadConfig=1&filename="+files[0].name,
-						success: function(msg)
-						{			
-							location.reload(true);
-						},
-						error: function() { }
-					});
-				}else
+				if (this.readyState == 4 && this.status == 200) 
 				{
-					alert("The file "+files[0].name+" hasn't been uploaded since the file extension is wrong,\r\nThe extension should be .xml");
+					var response = this.responseText;
+					if(response == 1)
+					{			
+						$.ajax({
+							type : "POST",  //type of method
+							url  : "index.php",  //your page
+							processData: false,
+							data: "loadConfig=1&filename="+files[0].name,
+							success: function(msg)
+							{		
+								location.reload(true);
+							},
+							error: function() { }
+						});
+					}else
+					{
+						alert("The file "+files[0].name+" hasn't been uploaded since the file extension is wrong,\r\nThe extension should be .xml");
+					}
 				}
-			}
+			};
+			// Send request with data
+			xhttp.send(formData);
 		};
-		// Send request with data
-		xhttp.send(formData);
-	};
-	input.click();
+		input.click();
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 </script>

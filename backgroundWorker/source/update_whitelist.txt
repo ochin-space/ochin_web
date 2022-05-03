@@ -1,0 +1,2 @@
+@boot@config.txt
+@etc@rc.local

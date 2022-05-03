@@ -11,20 +11,36 @@ $dbConstructor->createTable_modules();
 if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 {
     $rows = $dbConstructor->getRows_modules();
-    if(isset($_POST['delete'])) {
-        $dbConstructor->deleteRow_modules($_POST['id']);
-		removeModule($_POST['name']);
-    }
-    if(isset($_POST['update'])) {
-        $dbConstructor->updateRow_modules($_POST['id'], $_POST['en'], $_POST['name'], SQLite3::escapeString($_POST['description']), SQLite3::escapeString($_POST['new_cmd_line']), SQLite3::escapeString($_POST['options']));
-        $enable = ($_POST['en'] === 'true');
-		createModule($_POST['name'], $enable, $_POST['serviceNameOld'], $_POST['new_cmd_line'], $_POST['options']); //create the module instance
-    }
-    if(isset($_POST['add'])) {
+	
+    if(isset($_POST['update'])) 
+	{
+		$dbConstructor->updateRow_modules($_POST['id'], $_POST['en'], $_POST['name'], SQLite3::escapeString($_POST['description']), SQLite3::escapeString($_POST['new_cmd_line']), SQLite3::escapeString($_POST['options']));
+		if($_POST['en'] == 'true') $enable = 1;
+		else $enable = 0;
+		ModuleManage($enable, $_POST['name'], $_POST['nameOld'], SQLite3::escapeString($_POST['new_cmd_line']), SQLite3::escapeString($_POST['options']));
+	}
+	
+    if(isset($_POST['add'])) 
+	{			
 		$dbConstructor->insertRow_modules('','','','','');
     }
 	
-		
+    if(isset($_POST['loadModule'])) 
+	{
+		ModuleManage(1, $_POST['name'], " ", SQLite3::escapeString($_POST['cmd_line']), SQLite3::escapeString($_POST['options']));
+    }
+	
+    if(isset($_POST['unloadModule'])) 
+	{
+		ModuleManage(0, $_POST['name'], " ", SQLite3::escapeString($_POST['cmd_line']), SQLite3::escapeString($_POST['options']));
+    }
+	
+    if(isset($_POST['removeModule']))
+	{
+		$dbConstructor->deleteRow_modules($_POST['id']);
+        ModuleManage(-1,$_POST['name'], " ", SQLite3::escapeString($_POST['cmd_line']), SQLite3::escapeString($_POST['options']));
+	}
+	
 	function getSelectHTML()
 	{
 		$content = file_get_contents("helper/default_modules.json");
@@ -72,10 +88,11 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 		$xml = simplexml_load_file("tmp/".$_POST['filename']);
 		foreach ($xml->item as $item) :	
 			$name = $dbConstructor->nameCheck(SQLite3::escapeString($item->attributes()->name));   
-			$lastid = $dbConstructor->insertRow_modules($item->en, $name, SQLite3::escapeString($item->description), SQLite3::escapeString($item->cmd_line), SQLite3::escapeString($item->options));
-			$enable = ($item->en === 'true');
-			createModule($name, $enable, $name, $_POST['new_cmd_line'], $_POST['options']); //create the module instance
-		endforeach;
+			$dbConstructor->insertRow_modules($item->en, $name, SQLite3::escapeString($item->description), SQLite3::escapeString($item->cmd_line), SQLite3::escapeString($item->options));
+			if($item->en == 'true') $enable = 1;
+			else $enable = 0;			
+			ModuleManage($enable, $name, $item->moduleNameOld, $item->cmd_line, $item->options);//create the module instance
+    	endforeach;
 		if(is_file("tmp/".$_POST['filename'])) unlink("tmp/".$_POST['filename']); //delete file
 	}
 ?>
@@ -96,6 +113,9 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 <title>öchìn Web GUI</title>
 </head>
 <body style="background-color:#f2f2f2;">
+	<div class="row">	
+		<div id="banner" class="fs-5 p-2 mb-1 bg-warning text-dark text-center">This client is not connected locally. For security reasons, all functions that require advanced access to the operating system are inhibited. To use this web page it is necessary to be connected to the same subnet of the server.</div>
+	</div>
     <div class="container-xl">
         <div class="row">	
 			<div class="col-sm-10">			
@@ -147,7 +167,7 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 									<td value="<?php echo $row['description']; ?>"><?php echo $row['description']; ?></td>
                                     <td width='1%' white-space='nowrap'>
                                         <button type='button' class='btn btn-primary btn-sm' title="Click to test the Module" data-bs-toggle='modal' data-bs-target='#testModal' 
-										data-bs-cmd_line="<?php echo urlencode($row['cmd_line']);?>" data-bs-options="<?php echo urlencode($row['options']);?>" data-bs-id="<?php echo $row['id'];?>">
+										data-bs-name="<?php echo urlencode($row['name']);?>" data-bs-cmd_line="<?php echo urlencode($row['cmd_line']);?>" data-bs-options="<?php echo urlencode($row['options']);?>" data-bs-id="<?php echo $row['id'];?>">
                                         Manual</button>
                                     </td>
                                     <td width='1%' white-space='nowrap'>
@@ -157,7 +177,8 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
                                         Edit</button>
                                     </td>          
                                     <td width='1%' white-space='nowrap'>
-                                        <button type='button' class='btn btn-primary btn-sm' title="Click to delete the Module" data-bs-toggle='modal' data-bs-target='#deleteModal' data-bs-id="<?php echo $row['id'];?>" data-bs-cmd_line="<?php echo urlencode($row['cmd_line']);?>">
+                                        <button type='button' class='btn btn-primary btn-sm' title="Click to remove the Module" data-bs-toggle='modal' data-bs-target='#deleteModal' data-bs-id="<?php echo $row['id'];?>" 
+										data-bs-name="<?php echo urlencode($row['name']);?>" data-bs-cmd_line="<?php echo urlencode($row['cmd_line']);?>" data-bs-options="<?php echo urlencode($row['options']);?>">
                                         Delete</button>
                                     </td> 
                                 </tr>
@@ -248,8 +269,10 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
                     </div>
                     <input hidden type="text" class="form-control" id="deleteModal-id">
                     <input hidden type="text" class="form-control" id="deleteModal-name">
+                    <input hidden type="text" class="form-control" id="deleteModal-cmd_line">
+                    <input hidden type="text" class="form-control" id="deleteModal-options">
                     <div class="modal-footer">
-                        <button type='button' class="btn btn-primary" data-bs-dismiss="modal" onclick="deleteRow()">Yes</button> 
+                        <button type='button' class="btn btn-primary" data-bs-dismiss="modal" onclick="removeModule()">Yes</button> 
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </div>
@@ -313,20 +336,41 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 <!-- js end functions-->
 <script>
 var button;
+isClientLocal();
+
+function isClientLocal()
+{ 
+	var banner = document.getElementById("banner");
+	if(<?php echo isClientLocal();?>)
+	{
+		banner.style.display = "none";
+	}
+	else
+	{
+		banner.style.display = "block";
+	}
+}
 
 function insertRow()
 {
-	document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-    $.ajax({
-        type : "POST",  //type of method
-        url  : "index.php",  //your page
-        data: "add=1",
-        success: function(msg)
-        {
-            location.reload(true);
-        },
-        error: function() {  }
-    });
+	if(<?php echo isClientLocal();?>)
+	{		
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "add=1",
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 function testModule()
@@ -340,7 +384,6 @@ function testModule()
         success: function(msg)
         {			
 			document.getElementById('recipient-status').value = msg;
-            //location.reload(true);
         },
         error: function() { }
     });
@@ -348,78 +391,109 @@ function testModule()
 
 function loadModule()
 {
-	document.getElementById('recipient-status').value = "";
-    cmd_line = document.getElementById('testModal-cmd_line').value;
-    options = document.getElementById('testModal-options').value;
-    $.ajax({
-        type : "POST", 
-        url  : "helper/moduleHandler.php",  
-        data: "loadModule=1&cmd_line=" + cmd_line + "&options=" + options,
-        success: function(msg)
-        {
-			document.getElementById('recipient-status').value = msg;
-        },
-        error: function() {  }
-    });
+	if(<?php echo isClientLocal();?>)
+	{		
+		document.getElementById('recipient-status').value = "";
+		cmd_line = document.getElementById('testModal-cmd_line').value;
+		options = document.getElementById('testModal-options').value;
+		name = document.getElementById('testModal-name').value;
+		$.ajax({
+			type : "POST", 
+			url  : "index.php",  
+			data: "loadModule=1&name=" + name + "&cmd_line=" + cmd_line + "&options=" + options,
+			success: function(msg)
+			{
+				document.getElementById('recipient-status').value = msg;
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 function unloadModule()
 {
-	document.getElementById('recipient-status').value = "";
-    cmd_line = document.getElementById('testModal-cmd_line').value;
-    options = document.getElementById('testModal-options').value;
-    $.ajax({
-        type : "POST",
-        url  : "helper/moduleHandler.php",  
-        data: "unloadModule=1&cmd_line=" + cmd_line + "&options=" + options,
-        success: function(msg)
-        {
-			document.getElementById('recipient-status').value = msg;
-        },
-        error: function() {  }
-    });
+	if(<?php echo isClientLocal();?>)
+	{		
+		document.getElementById('recipient-status').value = "";
+		cmd_line = document.getElementById('testModal-cmd_line').value;
+		options = document.getElementById('testModal-options').value;
+		name = document.getElementById('testModal-name').value;
+		$.ajax({
+			type : "POST",
+			url  : "index.php",  
+			data: "unloadModule=1&name=" + name + "&cmd_line=" + cmd_line + "&options=" + options,
+			success: function(msg)
+			{
+				document.getElementById('recipient-status').value = msg;
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
-function deleteRow()
+function removeModule()
 {
-	document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-    id = document.getElementById('deleteModal-id').value;
-    name = document.getElementById('testModal-name').value;
-    //serviceName = document.getElementById('modulesTable').rows[id].cells[1].innerHTML;
-    
-    $.ajax({
-        type : "POST",  //type of method
-        url  : "index.php",  //your page
-        data: "delete=1&id=" + id + "&name=" + name,
-        success: function(msg)
-        {
-            location.reload(true);
-        },
-        error: function() { }
-    });
+	if(<?php echo isClientLocal();?>)
+	{		
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		id = document.getElementById('deleteModal-id').value;
+		name = document.getElementById('deleteModal-name').value;
+		cmd_line = document.getElementById('deleteModal-cmd_line').value;
+		options = document.getElementById('deleteModal-options').value;
+		
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "removeModule=1&id=" + id + "&name=" + name + "&cmd_line=" + cmd_line + "&options=" + options,
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() { }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 function updateRow()
 {
-	document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-    id = document.getElementById('recipient-id').value;
-    en = document.getElementById('enableCmdLn').checked;
-    name = document.getElementById('recipient-name').value;
-    new_cmd_line = document.getElementById('recipient-cmd_line').value; //this is the cmd_line after editing
-    options = document.getElementById('recipient-options').value; //this is the cmd_line after editing
-    description = document.getElementById('recipient-description').value;
-	//this is the cmd_line before editing. It's needed to find and replace it in the file
-    nameOld = document.getElementById('modulesTable').rows[id].cells[1].innerHTML;//button.getAttribute('data-bs-cmd_line');  //button.getAttribute(... doesn't work with special chars
-    $.ajax({
-        type : "POST",  //type of method
-        url  : "index.php",  //your page
-        data: "update=1&id=" + id + "&en=" + en + "&name=" + name + "&serviceNameOld=" + nameOld + "&description=" + description + "&new_cmd_line=" + new_cmd_line + "&options=" + options,
-        success: function(msg)
-        {
-            location.reload(true);
-        },
-        error: function() {  }
-    });
+	if(<?php echo isClientLocal();?>)
+	{		
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		id = document.getElementById('recipient-id').value;
+		en = document.getElementById('enableCmdLn').checked;
+		name = document.getElementById('recipient-name').value;
+		new_cmd_line = document.getElementById('recipient-cmd_line').value; //this is the cmd_line after editing
+		options = document.getElementById('recipient-options').value; //this is the cmd_line after editing
+		description = document.getElementById('recipient-description').value;
+		//this is the cmd_line before editing. It's needed to find and replace it in the file
+		nameOld = document.getElementById('modulesTable').rows[id].cells[1].innerHTML;//button.getAttribute('data-bs-cmd_line');  //button.getAttribute(... doesn't work with special chars
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "update=1&id=" + id + "&en=" + en + "&name=" + name + "&nameOld=" + nameOld + "&description=" + description + "&new_cmd_line=" + new_cmd_line + "&options=" + options,
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 
 var testModal = document.getElementById('testModal');
@@ -428,9 +502,11 @@ testModal.addEventListener('show.bs.modal', function (event) {
   button = event.relatedTarget;
   // Extract info from data-bs-* attributes
   var id = button.getAttribute('data-bs-id');
+  var name = decodeURIComponent(button.getAttribute('data-bs-name')).replace(/\+/g, ' ');
   var cmd_line = decodeURIComponent(button.getAttribute('data-bs-cmd_line')).replace(/\+/g, ' ');
   var options = decodeURIComponent(button.getAttribute('data-bs-options')).replace(/\+/g, ' ');
   document.getElementById('testModal-id').value = id;
+  document.getElementById('testModal-name').value = name;
   document.getElementById('testModal-cmd_line').value = cmd_line;
   document.getElementById('testModal-options').value = options;
   document.getElementById('recipient-status').value = "";
@@ -443,8 +519,12 @@ deleteModal.addEventListener('show.bs.modal', function (event) {
   // Extract info from data-bs-* attributes
   var id = button.getAttribute('data-bs-id');
   var name = decodeURIComponent(button.getAttribute('data-bs-name')).replace(/\+/g, ' ');
+  var cmd_line = decodeURIComponent(button.getAttribute('data-bs-cmd_line')).replace(/\+/g, ' ');
+  var options = decodeURIComponent(button.getAttribute('data-bs-options')).replace(/\+/g, ' ');
   document.getElementById('deleteModal-id').value = id;
   document.getElementById('deleteModal-name').value = name;
+  document.getElementById('deleteModal-cmd_line').value = cmd_line;
+  document.getElementById('deleteModal-options').value = options;
 })
 
 var editModal = document.getElementById('editModal');
@@ -521,48 +601,55 @@ async function uploadFile(files, location)
 
 function loadConfig()
 {
-	// Upload file
-	let input = document.createElement('input');
-	input.type = 'file';
-	input.onchange = _ => 
-	{
-		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
-		let files =   Array.from(input.files);
-		var formData = new FormData();
-		formData.append("file", files[0]);
-		formData.append("location", "../tmp");
-		var xhttp = new XMLHttpRequest();
-		// Set POST method and ajax file path
-		xhttp.open("POST", "helper/uploadFile.php", true);
-		// call on request changes state
-		xhttp.onreadystatechange = function() 
+	if(<?php echo isClientLocal();?>)
+	{		
+		// Upload file
+		let input = document.createElement('input');
+		input.type = 'file';
+		input.onchange = _ => 
 		{
-			if (this.readyState == 4 && this.status == 200) 
+			document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+			let files =   Array.from(input.files);
+			var formData = new FormData();
+			formData.append("file", files[0]);
+			formData.append("location", "../tmp");
+			var xhttp = new XMLHttpRequest();
+			// Set POST method and ajax file path
+			xhttp.open("POST", "helper/uploadFile.php", true);
+			// call on request changes state
+			xhttp.onreadystatechange = function() 
 			{
-				var response = this.responseText;
-				if(response == 1)
-				{			
-					$.ajax({
-						type : "POST",  //type of method
-						url  : "index.php",  //your page
-						processData: false,
-						data: "loadConfig=1&filename="+files[0].name,
-						success: function(msg)
-						{			
-							location.reload(true);
-						},
-						error: function() { }
-					});
-				}else
+				if (this.readyState == 4 && this.status == 200) 
 				{
-					alert("The file "+files[0].name+" hasn't been uploaded since the file extension is wrong,\r\nThe extension should be .xml");
+					var response = this.responseText;
+					if(response == 1)
+					{			
+						$.ajax({
+							type : "POST",  //type of method
+							url  : "index.php",  //your page
+							processData: false,
+							data: "loadConfig=1&filename="+files[0].name,
+							success: function(msg)
+							{			
+								location.reload(true);
+							},
+							error: function() { }
+						});
+					}else
+					{
+						alert("The file "+files[0].name+" hasn't been uploaded since the file extension is wrong,\r\nThe extension should be .xml");
+					}
 				}
-			}
+			};
+			// Send request with data
+			xhttp.send(formData);
 		};
-		// Send request with data
-		xhttp.send(formData);
-	};
-	input.click();
+		input.click();
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
 }
 </script>
 
