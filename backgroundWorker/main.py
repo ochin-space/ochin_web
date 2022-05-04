@@ -90,17 +90,17 @@ def kernelModules(source, whitelistFile):
                 else:
                     if old_name in whitelistModules:
                         logging.debug("The module name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the service file has been deleted.");
-                        whitelistManager(False, old_name, whitelist);   #remove the old name from the whitelist         
+                        whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist         
                         if(os.system('sudo modprobe -r '+cmd_line)==0):    #unload the module
                             logging.debug("Module \""+name+"\" unloaded!");
                         else:
                             logging.error("Error unloading \""+name+"\" module!");
                         removeFile("/etc/modules-load.d/"+old_name+".conf"); #remove the old named modules-load.d file   
                         removeFile("/etc/modprobe.d/"+old_name+".conf"); #remove the old named modprobe.d file
-                        whitelistManager(True, name, whitelist);    #add new name to the white list                   
+                        whitelistManager(True, name, whitelistFile);    #add new name to the white list                   
                     else:
                         logging.debug("The module \""+name+"\" was not in the whitelist.\nThe module has been added to the whitelist.");
-                        whitelistManager(True, name, whitelist);
+                        whitelistManager(True, name, whitelistFile);
                 
                 #create the files needed to start the kernel module at boot
                 createModule(name, cmd_line, options); 

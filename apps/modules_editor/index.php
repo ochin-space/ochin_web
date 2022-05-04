@@ -377,6 +377,7 @@ function testModule()
 {
 	document.getElementById('recipient-status').value = "";
     cmd_line = document.getElementById('testModal-cmd_line').value;
+	document.getElementById('recipient-status').value = "";
     $.ajax({
         type : "POST",  
         url  : "helper/moduleHandler.php",  
@@ -397,6 +398,7 @@ function loadModule()
 		cmd_line = document.getElementById('testModal-cmd_line').value;
 		options = document.getElementById('testModal-options').value;
 		name = document.getElementById('testModal-name').value;
+		document.getElementById('recipient-status').value = "";
 		$.ajax({
 			type : "POST", 
 			url  : "index.php",  
@@ -422,6 +424,7 @@ function unloadModule()
 		cmd_line = document.getElementById('testModal-cmd_line').value;
 		options = document.getElementById('testModal-options').value;
 		name = document.getElementById('testModal-name').value;
+		document.getElementById('recipient-status').value = "";
 		$.ajax({
 			type : "POST",
 			url  : "index.php",  

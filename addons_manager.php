@@ -65,7 +65,7 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 		$serverNet = pathinfo($_SERVER['SERVER_ADDR'],PATHINFO_FILENAME);
 		$result=0;
 		if(strcmp($serverNet,$clientNet)==0) $result=1; else $result=0;
-		echo $result;
+		return $result;
 	}
 ?>
 

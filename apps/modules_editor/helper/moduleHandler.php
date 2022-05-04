@@ -10,7 +10,7 @@ function isClientLocal()
 	$serverNet = pathinfo($_SERVER['SERVER_ADDR'],PATHINFO_FILENAME);
 	$result=0;
 	if(strcmp($serverNet,$clientNet)==0) $result=1; else $result=0;
-	echo $result;
+	return $result;
 }
 
 if(isset($_POST['testModule'])) 
@@ -18,6 +18,7 @@ if(isset($_POST['testModule']))
 	$response = shell_exec("lsmod | grep ".$_POST['cmd_line']);
 	if($response) echo($response);
 	else echo("The ".$_POST['cmd_line']." kernel module is not loaded!");
+	exit();
 }
 
 function ModuleManage($action, $moduleName, $moduleNameOld, $cmd_line, $options) 
@@ -39,6 +40,7 @@ function ModuleManage($action, $moduleName, $moduleNameOld, $cmd_line, $options)
 	$response = shell_exec("lsmod | grep ".$cmd_line);
 	if($response) echo($response);
 	else echo("The ".$cmd_line." kernel module is not loaded!");
+	exit();
 }
 
 function editModuleFile($moduleName, $moduleNameOld, $cmd_line, $options, $action)

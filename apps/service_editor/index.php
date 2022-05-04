@@ -432,6 +432,7 @@ function testService()
 {
 	document.getElementById('test-status').value = "";
     serviceName = document.getElementById('test-name').value;
+	document.getElementById('test-status').value = "";
     $.ajax({
         type : "POST",  //type of method
         url  : "helper/serviceHandler.php",  //your page
@@ -456,6 +457,7 @@ function startService()
 		serviceOptions = document.getElementById('test-serviceOptions').value;
 		installOptions = document.getElementById('test-installOptions').value;
 		description = document.getElementById('test-description').value;
+		document.getElementById('test-status').value = "";
 		$.ajax({
 			type : "POST",  //type of method
 			url  : "index.php",  //your page
@@ -487,6 +489,7 @@ function stopService()
 		serviceOptions = document.getElementById('test-serviceOptions').value;
 		installOptions = document.getElementById('test-installOptions').value;
 		description = document.getElementById('test-description').value;
+		document.getElementById('test-status').value = "";
 		$.ajax({
 			type : "POST",  //type of method
 			url  : "index.php",  //your page
