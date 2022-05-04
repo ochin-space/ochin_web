@@ -29,7 +29,7 @@ sudo apt-get install git
 sudo git clone https://github_token@github.com/ochin-space/ochin_web
 ```
 
-#In order to run, ochin_web needs additional software (apache, php, sqlite3 etc..) and it's also needed to setup some permissions. 
+In order to run, ochin_web needs additional software (apache, php, sqlite3 etc..) and it's also needed to setup some permissions. 
 <h4>Manual Installation</h4>
 <p>The steps required to install the system are as follows</p>
 
@@ -95,6 +95,7 @@ So in summary it can be said that the changes can be made from the web only if c
 
 ![Alt text](images/register.png?raw=true&=200x "register")
 <p>As soon as you enter the software, you will only see the topbar.</p>
+
 ![Alt text](images/web_landing.png?raw=true&=200x "landing page")
 <p>In the topbar you have the "Configuration" menu, the "Log Out" button and the user name and avatar on the right side.</p>
 <p>To change the user data and the avatar image you have to enter the user profile manager clicking on the default avatar on the right or from the menu "Configuration-> User Profile"</p>
