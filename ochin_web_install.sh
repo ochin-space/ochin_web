@@ -30,10 +30,6 @@ sudo cp favicon.ico ../
 sudo chown -R www-data:www-data /var/www/html/ochin_web
 #secure the whitelists
 sudo chown -R root:root /var/www/html/ochin_web/backgroundWorker
-sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2remove
-sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2update
-sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/modules
-sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/services
 #setup the background service to run at boot and log to file
 echo "create background_worker.service"
 servicefile="/lib/systemd/system/background_worker.service"
