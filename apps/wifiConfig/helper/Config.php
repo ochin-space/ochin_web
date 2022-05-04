@@ -5,7 +5,7 @@
 * The LICENSE file is included in the project's root. 
 */ 
 class Config {
-    const backgroundWorker_path = './../../backgroundWorker/source/';
+    const backgroundWorker_path = './../../backgroundWorker/exchange/';
     const topbar_path = '../../navbar.php';
     const jQueryPath = "../../lib/jquery-3.6.0.min.js";
 	const bootstrapCSSpath = "../../lib/bootstrap-5.0.1-dist/css/bootstrap.min.css";
