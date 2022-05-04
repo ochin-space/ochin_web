@@ -9,6 +9,7 @@ import sys
 import subprocess
 import time
 import logging
+from pwd import getpwnam
 from xml.etree import ElementTree
     
 def moveFile(source, dest):
@@ -336,6 +337,32 @@ def files2remove(source, whitelist):
             removeFile(source+"/"+files2remove[i]);
             logging.warning("The file \""+files2remove[i]+"\" is not in the whitelist.");
             logging.info("The operation is not permitted and the file \""+files2remove[i]+"\" will be deleted!");
+
+def checkEmptyFolders():
+    if not os.path.exists("exchange/files2update/"):
+        os.makedirs("exchange/files2update/");
+        os.chown("exchange/files2update/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print("exchange/files2update/ folder created");
+        
+    if not os.path.exists("exchange/files2remove/"):
+        os.makedirs("exchange/files2remove/");
+        os.chown("exchange/files2remove/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print("exchange/files2remove/ folder created");
+    
+    if not os.path.exists("exchange/modules/"):
+        os.makedirs("exchange/modules/");
+        print("exchange/modules/ folder created");
+        os.chown("exchange/modules/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+    
+    if not os.path.exists("exchange/services/"):
+        os.makedirs("exchange/services/");
+        os.chown("exchange/services/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print("exchange/services/ folder created");
+    
+    if not os.path.exists("exchange/logs/"):
+        os.makedirs("exchange/logs/");
+        print("exchange/logs/ folder created");
+
 def main():
     while(True):
         files2update(sourcefolder+"files2update/", sourcefolder+"update_whitelist.txt");
@@ -345,9 +372,11 @@ def main():
         time.sleep(1);   
         
 if __name__ == "__main__":
+    checkEmptyFolders();
+    
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
-
+    
     if "-h" in opts:
         raise SystemExit(f"Usage: {sys.argv[0]} (-source folder | -logsPath path_of_the_log_files | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...")
     elif "-source" in opts:

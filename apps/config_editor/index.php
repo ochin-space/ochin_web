@@ -6,6 +6,10 @@
 */ 
 require 'helper/init.php';
 require 'helper/editFiles.php';
+
+if(!is_dir("./db")) mkdir("./db"); //check if "db" folder exist and eventually create it
+if(!is_dir("./tmp")) mkdir("./tmp"); //check if "tmp" folder exist and eventually create it
+
 $dbConstructor->createTable_config_txt();
 
 if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true)) 

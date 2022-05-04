@@ -82,7 +82,7 @@ if($rows_addons!=null)
 }
 ?>			
         <li class="nav-item">
-          <a class="nav-link" href="logout.php">Log Out</a>
+          <a class="nav-link" href="/<?php echo $ochin_path;?>/logout.php">Log Out</a>
         </li>
       </ul>
         <li class="d-flex  me-2">

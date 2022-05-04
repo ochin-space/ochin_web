@@ -6,6 +6,9 @@
 */  
 require 'helper/init.php';
 
+if(!is_dir("./db")) mkdir("./db"); //check if "db" folder exist and eventually create it
+if(!is_dir("./tmp")) mkdir("./tmp"); //check if "tmp" folder exist and eventually create it
+
 // create new user and topbar tables if it doesn't already exist
 $dbConstructor_main->createTableUsers();
 $dbConstructor_main->createTableAddons();
