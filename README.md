@@ -12,8 +12,8 @@
 
 <h3>DISCLAIMER</h3>
 ...part of the DISCLAIMER.md doc present in the root of the project...
-<i><ul><li>This software is based on the use of an Apache webserver and is in fact a website. Unlike a normal public website, it must be able to perform operations on the Operating System files with advanced administrator rights. For this to happen, the user "www-data" has been promoted to the "sudoers" group. This puts the entire operating system at great risk from possible external attacks. The software itself allows the user to perform advanced operations that can compromise the stability of the system. For these reasons, before using this software it is necessary to understand well what are the objectives for which it was created and its limits.</li>
-<li>The software is meant to become a web development platform for Raspberry Pi board-based devices. The basic structure of the software allows you to manage services, the hardware configuration of the Raspberry pi board, kernel modules, networking boards and more. Addons can be installed on the base structure to provide advanced features. The software is therefore suitable for projects where the Raspberry Pi board is used to manage a hardware device, such as a robot. In this case the sw ochin_web is used as a graphical interface to manage the machine, accessible only to the developer or user of the robot. It is highly inadvisable to make the web interface public, due to the risks involved in having a public website managed by a user who is also an operating system administrator.</li></ul></i>
+<i><ul><li>This software is based on the use of an Apache webserver and is in fact a website. Unlike a normal public website, it must be able to perform operations on the Operating System files with advanced administrator rights. For this to happen, the software uses a background service that exchanges information with the webserver and manages the system files (limited only to the necessary files). In this way the user "www-data", who manages the webserver, does not have direct access to the system. However, this implies an implicit reduction in the security level of the system. The software itself allows the user to perform advanced operations that can compromise the stability of the system. With the aim of increasing security, potentially dangerous operations are limited to local access (from IPs present in the same subnet of the webserver). That said, it is highly inadvisable to make the web interface public, due to the risks involved in having a public website managed by a user who is also an operating system administrator. For these reasons, before using this software it is necessary to understand well what are the objectives for which it was created and its limits.</li>
+<li>The software is meant to become a web development platform for Raspberry Pi board-based devices. The basic structure of the software allows you to manage services, the hardware configuration of the Raspberry pi board, kernel modules, networking boards and more. Addons can be installed on the base structure to provide advanced features. The software is therefore suitable for projects where the Raspberry Pi board is used to manage a hardware device, such as a robot or IOT devices. In this case the sw ochin_web is used as a graphical interface to manage the machine, accessible only to the developer or the user of the robot.</li></ul></i>
 <h3>How to install ochin_web</h3>
 <p>
 To install the software it is necessary to prepare the Raspberry Pi board with a clean image of the system, configure the internet connection and update it with the following commands:</p>
@@ -23,10 +23,59 @@ To install the software it is necessary to prepare the Raspberry Pi board with a
 <p>sudo apt-get install git</p>
 <p>It's now possible to clone the ochin_web git repo with the following command:</p>
 <p>sudo git clone https://github_token@github.com/ochin-space/ochin_web</p>
-<p>In order to run, ochin_web needs additional software (apache, php, sqlite3 etc..) and it's also needed to setup some permissions. To simplify the installation process, there is a script in the root of the project that manage the needed packages installations and set the permissions.</p>
-<p>cd ochin_web</p>
-<p>sudo chmod +x ochin_web_install.sh</p>
-<p>sudo ./ochin_web_install.sh</p>
+<p>In order to run, ochin_web needs additional software (apache, php, sqlite3 etc..) and it's also needed to setup some permissions. 
+<h4>Manual Installation</h4>
+<p>The steps required to install the system are as follows</p>
+```
+#Install Apache
+sudo apt install apache2
+#Setting up PHP7.4 libs and extensions for Apache
+sudo apt install php7.4 php7.4-zip php7.4-xml php7.4-sqlite3
+#Enable sqlite and pdo extensions and increase PHP upload size: change the following lines in /etc/php/7.4/apache/php.ini
+upload_max_filesize = 100M
+post_max_size = 100M
+max_input_time = 180
+extension=sqlite3
+extension=pdo_sqlite
+#enable rewrite engine and point to /var/www/html/ochin_web
+sudo sed -i '/^\tDocumentRoot.*/a \\n\tRewriteEngine on \n\t\tRewriteCond %{REQUEST_URI} ^\\\/$ \n\t\tRewriteRule (.*) \/ochin_web\/ [R=301]' /etc/apache2/sites-enabled/000-default.conf
+sudo a2enmod rewrite
+#move ochin_web to the www folder and git the right to www-data
+sudo mv  ../ochin_web /var/www/html
+sudo chown -R www-data:www-data /var/www/html/ochin_web
+#secure the backgroundworker
+sudo chown -R root:root /var/www/html/ochin_web/backgroundWorker
+#setup the background service to run at boot and log to file
+servicefile="/lib/systemd/system/background_worker.service"
+logLevel="INFO"
+rootpath="/var/www/html/ochin_web/"
+echo "[Unit]">$servicefile
+echo "Description=background_worker">>$servicefile
+echo "After=multi-user.target">>$servicefile
+echo "">>$servicefile
+echo "[Service]">>$servicefile
+echo "ExecStart=sudo python "$rootpath"backgroundWorker/main.py -source "$rootpath"backgroundWorker/exchange/ -logging "$logLevel" -logsPath "$rootpath"backgroundWorker/exchange/logs/">>$servicefile
+echo "Restart=always">>$servicefile
+echo "">>$servicefile
+echo "[Install]">>$servicefile
+echo "WantedBy=multi-user.target">>$servicefile
+sudo systemctl enable background_worker.service 
+sudo systemctl start background_worker.service 
+```
+<h4>Automatic Installation</h4>
+<p>To simplify the installation process, there is a script in the root of the project that manage the needed packages installations and set the permissions.</p>
+```
+cd ochin_web
+sudo chmod +x ochin_web_install.sh
+sudo ./ochin_web_install.sh
+```
+<h3>Secure a colander</h3>
+This software is meant to be a development platform, with the ability to host apps. However, giving the developer maximum freedom means exposing the system to external attacks. For this reason it is important to think about how to protect it when exposed. The criteria used to secure the system are as follows:
+<li>Limit the functionality of the interfaces that act on the system only to clients connected locally. The control takes place on the server and requests sent by clients connected to another subnet than that of the webserver are rejected.</li>
+<li>The rights of the user www-data are not extended, therefore the php is not able to create or modify files outside the www folder.</li>
+<li>The changes to the system are performed by a background service that communicates with the php by means of files created by it.</li>
+<li>The background service is able to modify or delete only the system files present in the appropriate whitelists. Whitelists are static and cannot be changed by php. The only exception is the whitelist of services, which are dynamically added and removed from the php. This last whitelist has the purpose of limiting the action of the php only to the services it has created (and not the system ones).</li>
+So in summary it can be said that the changes can be made from the web only if connected locally. The changes are indirect as they are performed by a background service, which accepts only those provided by the whitelists. However, it should be noted that the content of a modification to a system file or the creation of a service is not controllable and can cause enormous damage to the system in terms of data retention or system stability. These precautions have the sole purpose of reducing the possibility of malicious, unwanted and potentially destructive access to the system and not to reduce the possibility of making mistakes by the administrator.
 <h3>How to use ochin_web</h3>
 <p>
 <p> If the installation process was successful, opening the browser at the ip address of the Raspberry Pi board. Alternatively to the IP address, you can reach the page with the hostname "ochin.local". </p>

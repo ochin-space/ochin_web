@@ -338,30 +338,30 @@ def files2remove(source, whitelist):
             logging.warning("The file \""+files2remove[i]+"\" is not in the whitelist.");
             logging.info("The operation is not permitted and the file \""+files2remove[i]+"\" will be deleted!");
 
-def checkEmptyFolders():
-    if not os.path.exists("exchange/files2update/"):
-        os.makedirs("exchange/files2update/");
-        os.chown("exchange/files2update/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
-        print("exchange/files2update/ folder created");
+def checkEmptyFolders(sourcefolder):
+    if not os.path.exists(sourcefolder+"/files2update/"):
+        os.makedirs(sourcefolder+"/files2update/");
+        os.chown(sourcefolder+"/files2update/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print(sourcefolder+"/files2update/ folder created");
         
-    if not os.path.exists("exchange/files2remove/"):
-        os.makedirs("exchange/files2remove/");
-        os.chown("exchange/files2remove/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
-        print("exchange/files2remove/ folder created");
+    if not os.path.exists(sourcefolder+"/files2remove/"):
+        os.makedirs(sourcefolder+"/files2remove/");
+        os.chown(sourcefolder+"/files2remove/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print(sourcefolder+"/files2remove/ folder created");
     
-    if not os.path.exists("exchange/modules/"):
-        os.makedirs("exchange/modules/");
-        print("exchange/modules/ folder created");
-        os.chown("exchange/modules/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+    if not os.path.exists(sourcefolder+"/modules/"):
+        os.makedirs(sourcefolder+"/modules/");
+        print(sourcefolder+"/modules/ folder created");
+        os.chown(sourcefolder+"/modules/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
     
-    if not os.path.exists("exchange/services/"):
-        os.makedirs("exchange/services/");
-        os.chown("exchange/services/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
-        print("exchange/services/ folder created");
+    if not os.path.exists(sourcefolder+"/services/"):
+        os.makedirs(sourcefolder+"/services/");
+        os.chown(sourcefolder+"/services/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print(sourcefolder+"/services/ folder created");
     
-    if not os.path.exists("exchange/logs/"):
-        os.makedirs("exchange/logs/");
-        print("exchange/logs/ folder created");
+    if not os.path.exists(sourcefolder+"/logs/"):
+        os.makedirs(sourcefolder+"/logs/");
+        print(sourcefolder+"/logs/ folder created");
 
 def main():
     while(True):
@@ -371,9 +371,7 @@ def main():
         services(sourcefolder+"services/", sourcefolder+"services_whitelist.txt", sourcefolder+"sysServices_whitelist.txt");
         time.sleep(1);   
         
-if __name__ == "__main__":
-    checkEmptyFolders();
-    
+if __name__ == "__main__":    
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
     
@@ -382,6 +380,7 @@ if __name__ == "__main__":
     elif "-source" in opts:
         sourcefolder = args[opts.index("-source")];
         print("The source folder is: \""+sourcefolder+"\"");
+        checkEmptyFolders(sourcefolder);
         if "-logsPath" in opts:
             logsPath = args[opts.index("-logsPath")];
             print("The log files path is: \""+logsPath+"\"");            

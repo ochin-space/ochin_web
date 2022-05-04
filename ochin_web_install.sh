@@ -10,10 +10,6 @@ sudo apt install apache2 -y
 
 #buster
 echo "Setting up PHP7.4 libs and extensions for Apache"
-#curl https://packages.sury.org/php/apt.gpg | sudo tee /usr/share/keyrings/suryphp-archive-keyring.gpg >/dev/null
-#echo "deb [signed-by=/usr/share/keyrings/suryphp-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/sury-php.list
-#sudo apt update -y
-#sudo apt-get install php7.4 libapache2-mod-php7.4 php7.4-mbstring php7.4-mysql php7.4-curl php7.4-gd php7.4-zip -y
 #bullseye
 sudo apt install php7.4 php7.4-zip php7.4-xml php7.4-sqlite3 -y
 echo "increase upload size"
@@ -29,6 +25,7 @@ sudo sed -i '/^\tDocumentRoot.*/a \\n\tRewriteEngine on \n\t\tRewriteCond %{REQU
 sudo a2enmod rewrite
 sudo systemctl restart apache2
 sudo mv  ../ochin_web /var/www/html
+sudo cp favicon.ico ../
 #www-data own the folder
 sudo chown -R www-data:www-data /var/www/html/ochin_web
 #secure the whitelists
@@ -37,7 +34,6 @@ sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/f
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2update
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/modules
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/services
-sudo cp favicon.ico ../
 #setup the background service to run at boot and log to file
 echo "create background_worker.service"
 servicefile="/lib/systemd/system/background_worker.service"
