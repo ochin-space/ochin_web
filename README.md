@@ -10,20 +10,16 @@
 <li><a href="">Local Atlas</a>, This addon allows you to download and manage geographic maps locally quickly and easily.</li>
 </ol>
 
-<h3>DISCLAIMER</h3>
-...part of the DISCLAIMER.md doc present in the root of the project...
-<i><ul><li>This software is based on the use of an Apache webserver and is in fact a website. Unlike a normal public website, it must be able to perform operations on the Operating System files with advanced administrator rights. For this to happen, the software uses a background service that exchanges information with the webserver and manages the system files (limited only to the necessary files). In this way the user "www-data", who manages the webserver, does not have direct access to the system. However, this implies an implicit reduction in the security level of the system. The software itself allows the user to perform advanced operations that can compromise the stability of the system. With the aim of increasing security, potentially dangerous operations are limited to local access (from IPs present in the same subnet of the webserver). That said, it is highly inadvisable to make the web interface public, due to the risks involved in having a public website managed by a user who is also an operating system administrator. For these reasons, before using this software it is necessary to understand well what are the objectives for which it was created and its limits.</li>
-<li>The software is meant to become a web development platform for Raspberry Pi board-based devices. The basic structure of the software allows you to manage services, the hardware configuration of the Raspberry pi board, kernel modules, networking boards and more. Addons can be installed on the base structure to provide advanced features. The software is therefore suitable for projects where the Raspberry Pi board is used to manage a hardware device, such as a robot or IOT devices. In this case the sw ochin_web is used as a graphical interface to manage the machine, accessible only to the developer or the user of the robot.</li></ul></i>
 <h3>How to install ochin_web</h3>
 <p>
 To install the software it is necessary to prepare the Raspberry Pi board with a clean image of the system, configure the internet connection and update it with the following commands:</p>
 
 ```
 sudo apt-get update
-sudo apt-get upgrade
+sudo apt-get upgrade -y
 
 #and then install the git package
-sudo apt-get install git
+sudo apt-get install git -y
 
 #It's now possible to clone the ochin_web git repo with the following command:
 sudo git clone https://github_token@github.com/ochin-space/ochin_web
@@ -31,7 +27,7 @@ sudo git clone https://github_token@github.com/ochin-space/ochin_web
 
 In order to run, ochin_web needs additional software (apache, php, sqlite3 etc..) and it's also needed to setup some permissions. 
 <h4>Manual Installation</h4>
-<p>The steps required to install the system are as follows</p>
+<p>The steps required to install the software on Bullseye Pi are as follows</p>
 
 ```
 #Install Apache
@@ -71,7 +67,7 @@ sudo systemctl start background_worker.service
 ```
 
 <h4>Automatic Installation</h4>
-<p>To simplify the installation process, there is a script in the root of the project that manage the needed packages installations and set the permissions.</p>
+<p>To simplify the installation process, there is a script in the root of the project that manage the needed packages installations. <br><u>The script has been tested on the latest Raspberry Pi Bullseye Lite OS.</u></p>
 
 ```
 cd ochin_web
@@ -189,3 +185,8 @@ Each addon can be managed by means of the "edit" button. By pressing "edit" a mo
 <p>From the modal dialog you can enable or disable the addon. If the addon is disabled, it remains in the system but is not displayed in the topbar.
 By means of a select bar it is possible to choose whether to assign the addon to the "Applications", "Configuration", "Development" or "Topbar". In the last case, the addon will be shown on the zero level in the topbar. From the "name" field you can change the name that will be displayed in the menu, while "folder name" is the path where the addon will be saved, inside of the "/var/www/html/ochin/addons/" folder.</p>
 <p>By clicking the "Delete" button, the folder that contain the addon will be delated and the addon removed from the addons database. </p>
+
+<h3>DISCLAIMER</h3>
+...part of the DISCLAIMER.md doc present in the root of the project...
+<i><ul><li>This software is based on the use of an Apache webserver and is in fact a website. Unlike a normal public website, it must be able to perform operations on the Operating System files with advanced administrator rights. For this to happen, the software uses a background service that exchanges information with the webserver and manages the system files (limited only to the necessary files). In this way the user "www-data", who manages the webserver, does not have direct access to the system. However, this implies an implicit reduction in the security level of the system. The software itself allows the user to perform advanced operations that can compromise the stability of the system. With the aim of increasing security, potentially dangerous operations are limited to local access (from IPs present in the same subnet of the webserver). That said, it is highly inadvisable to make the web interface public, due to the risks involved in having a public website managed by a user who is also an operating system administrator. For these reasons, before using this software it is necessary to understand well what are the objectives for which it was created and its limits.</li>
+<li>The software is meant to become a web development platform for Raspberry Pi board-based devices. The basic structure of the software allows you to manage services, the hardware configuration of the Raspberry pi board, kernel modules, networking boards and more. Addons can be installed on the base structure to provide advanced features. The software is therefore suitable for projects where the Raspberry Pi board is used to manage a hardware device, such as a robot or IOT devices. In this case the sw ochin_web is used as a graphical interface to manage the machine, accessible only to the developer or the user of the robot.</li></ul></i>

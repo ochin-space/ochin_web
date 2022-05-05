@@ -1,6 +1,6 @@
 echo "setup hello messages"
 #echo 'echo -e "\e[1;31m   _   _      __    _\n  (_)_(_)____/ /_  (_)___\n / __ \/ ___/ __ \/ / __ \ \n/ /_/ / /__/ / / / / / / /\n\____/\___/_/ /_/_/_/ /_/ \n\e[0m"' | sudo tee -a /etc/issue
-echo 'echo -e "\e[1;31m   _   _      __    _\n  (_)_(_)____/ /_  (_)___\n / __ \/ ___/ __ \/ / __ \ \n/ /_/ / /__/ / / / / / / /\n\____/\___/_/ /_/_/_/ /_/ \n\e[0m"' | sudo tee -a /home/${SUDO_USER}/.bashrc
+echo 'echo -e "\e[1;31m\n   _   _      __    _\n  (_)_(_)____/ /_  (_)___\n / __ \/ ___/ __ \/ / __ \ \n/ /_/ / /__/ / / / / / / /\n\____/\___/_/ /_/_/_/ /_/ \n\e[0m"' | sudo tee -a /home/${SUDO_USER}/.bashrc
 echo "change the hostname to ochin"
 echo ochin | sudo tee /etc/hostname
 echo "install Apache"
@@ -10,7 +10,6 @@ sudo apt install apache2 -y
 
 #buster
 echo "Setting up PHP7.4 libs and extensions for Apache"
-#bullseye
 sudo apt install php7.4 php7.4-zip php7.4-xml php7.4-sqlite3 -y
 echo "increase upload size"
 sudo sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 100M/g' /etc/php/7.4/apache2/php.ini
@@ -20,16 +19,20 @@ echo "enable php extensions: sqlite3 and pdo_sqlite"
 sudo sed -i 's/;extension=sqlite3/extension=sqlite3/g' /etc/php/7.4/apache2/php.ini
 sudo sed -i 's/;extension=pdo_sqlite/extension=pdo_sqlite/g' /etc/php/7.4/apache2/php.ini
 
-echo "rewrite engine on and point to /ochin"
-sudo sed -i '/^\tDocumentRoot.*/a \\n\tRewriteEngine on \n\t\tRewriteCond %{REQUEST_URI} ^\\\/$ \n\t\tRewriteRule (.*) \/ochin_web\/ [R=301]' /etc/apache2/sites-enabled/000-default.conf
-sudo a2enmod rewrite
-sudo systemctl restart apache2
+#move ochin_web to the www folder
 sudo mv  ../ochin_web /var/www/html
 sudo cp favicon.ico ../
 #www-data own the folder
 sudo chown -R www-data:www-data /var/www/html/ochin_web
-#secure the whitelists
+#secure the backgroundworker
 sudo chown -R root:root /var/www/html/ochin_web/backgroundWorker
+
+#redirect to ochin_web
+echo "rewrite engine on and point to /ochin"
+sudo sed -i '/^\tDocumentRoot.*/a \\n\tRewriteEngine on \n\t\tRewriteCond %{REQUEST_URI} ^\\\/$ \n\t\tRewriteRule (.*) \/ochin_web\/ [R=301]' /etc/apache2/sites-enabled/000-default.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
 #setup the background service to run at boot and log to file
 echo "create background_worker.service"
 servicefile="/lib/systemd/system/background_worker.service"
@@ -47,3 +50,4 @@ echo "[Install]">>$servicefile
 echo "WantedBy=multi-user.target">>$servicefile
 sudo systemctl enable background_worker.service 
 sudo systemctl start background_worker.service 
+sudo systemctl status background_worker.service 
