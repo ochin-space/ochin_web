@@ -376,7 +376,7 @@ if __name__ == "__main__":
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
     
     if "-h" in opts:
-        raise SystemExit(f"Usage: {sys.argv[0]} (-source folder | -logsPath path_of_the_log_files | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...")
+        raise SystemExit("Usage: {sys.argv[0]} (-source folder | -logsPath path_of_the_log_files | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...")
     elif "-source" in opts:
         sourcefolder = args[opts.index("-source")];
         print("The source folder is: \""+sourcefolder+"\"");
@@ -388,7 +388,7 @@ if __name__ == "__main__":
                 loglevel = args[opts.index("-logging")];
                 if(loglevel!="DEBUG" and loglevel!="INFO" and loglevel!="WARNING" and loglevel!="ERROR" and loglevel!="CRITICAL"):
                     print("The \""+loglevel+"\" logging level is not available, please choose one level in the list\n");
-                    raise SystemExit(f"Usage: {sys.argv[0]} (-source folder | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...");
+                    raise SystemExit("Usage: {sys.argv[0]} (-source folder | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...");
                 print("The logging level is set to: \""+loglevel+"\"");
             else:
                 loglevel = "WARNING";
@@ -397,6 +397,6 @@ if __name__ == "__main__":
             logging.basicConfig(filename=logsPath+logname, encoding='utf-8', level=logging.getLevelName(loglevel));
             logging.info('ochin_web backgroundWorker started!')
     else:
-        raise SystemExit(f"Usage: {sys.argv[0]} (-source folder | -logsPath path_of_the_log_files | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...")
+        raise SystemExit("Usage: {sys.argv[0]} (-source folder | -logsPath path_of_the_log_files | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...")
            
     main();
