@@ -9,15 +9,15 @@ sudo apt upgrade -y
 sudo apt install apache2 -y
 
 #buster
-echo "Setting up PHP7.4 libs and extensions for Apache"
-sudo apt install php7.4 php7.4-zip php7.4-xml php7.4-sqlite3 -y
+echo "Setting up PHP7.3 libs and extensions for Apache"
+sudo apt install php7.3 php7.3-zip php7.3-xml php7.3-sqlite3 -y
 echo "increase upload size"
-sudo sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 100M/g' /etc/php/7.4/apache2/php.ini
-sudo sed -i 's/post_max_size = 8M/post_max_size = 100M/g' /etc/php/7.4/apache2/php.ini
-sudo sed -i 's/max_input_time = 60/max_input_time = 180/g' /etc/php/7.4/apache2/php.ini
+sudo sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 100M/g' /etc/php/7.3/apache2/php.ini
+sudo sed -i 's/post_max_size = 8M/post_max_size = 100M/g' /etc/php/7.3/apache2/php.ini
+sudo sed -i 's/max_input_time = 60/max_input_time = 180/g' /etc/php/7.3/apache2/php.ini
 echo "enable php extensions: sqlite3 and pdo_sqlite"
-sudo sed -i 's/;extension=sqlite3/extension=sqlite3/g' /etc/php/7.4/apache2/php.ini
-sudo sed -i 's/;extension=pdo_sqlite/extension=pdo_sqlite/g' /etc/php/7.4/apache2/php.ini
+sudo sed -i 's/;extension=sqlite3/extension=sqlite3/g' /etc/php/7.3/apache2/php.ini
+sudo sed -i 's/;extension=pdo_sqlite/extension=pdo_sqlite/g' /etc/php/7.3/apache2/php.ini
 
 #move ochin_web to the www folder
 sudo mv  ../ochin_web /var/www/html

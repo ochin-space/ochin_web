@@ -4,9 +4,6 @@
 * This code is a part of the ochin project (https://github.com/ochin-space)
 * The LICENSE file is included in the project's root. 
 */  
-if(!is_dir("./db")) mkdir("./db"); //check if "db" folder exist and eventually create it
-if(!is_dir("./tmp")) mkdir("./tmp"); //check if "tmp" folder exist and eventually create it
-
 require 'helper/init.php';
 
 // create new user and topbar tables if it doesn't already exist

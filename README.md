@@ -32,9 +32,9 @@ In order to run, ochin_web needs additional software (apache, php, sqlite3 etc..
 ```
 #Install Apache
 sudo apt install apache2
-#Setting up PHP7.4 libs and extensions for Apache
-sudo apt install php7.4 php7.4-zip php7.4-xml php7.4-sqlite3
-#Enable sqlite and pdo extensions and increase PHP upload size: change the following lines in /etc/php/7.4/apache/php.ini
+#Setting up PHP7.3 libs and extensions for Apache
+sudo apt install php7.3 php7.3-zip php7.3-xml php7.3-sqlite3
+#Enable sqlite and pdo extensions and increase PHP upload size: change the following lines in /etc/php/7.3/apache/php.ini
 upload_max_filesize = 100M
 post_max_size = 100M
 max_input_time = 180
