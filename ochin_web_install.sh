@@ -10,7 +10,7 @@ sudo apt install apache2 -y
 
 #buster
 echo "Setting up PHP7.3 libs and extensions for Apache"
-sudo apt install php7.3 php7.3-zip php7.3-xml php7.3-sqlite3 -y
+sudo apt install php7.3 php7.3-zip php7.3-xml php7.3-curl php7.3-sqlite3 libapache2-mod-php7.3 php7.3-mbstring php7.3-gd -y  
 echo "increase upload size"
 sudo sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 100M/g' /etc/php/7.3/apache2/php.ini
 sudo sed -i 's/post_max_size = 8M/post_max_size = 100M/g' /etc/php/7.3/apache2/php.ini
