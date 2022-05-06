@@ -67,27 +67,33 @@ function removeOldScript($name,$filename)
 {
 	if(isClientLocal())
 	{
-		$start = "#start script ".$name." from ochin web\n";
-		$stop = "#end script ".$name." from ochin web\n";
-		
-		$drop = false;
-		$reading = fopen($filename, 'r');
-		$writing = "";
-		
-		while(!feof($reading)) 
+		if(file_exists())
 		{
-			$line = fgets($reading);          
-			if(strcmp($line,$start)==0)  $drop = true;
-			if($drop == false) $writing = $writing.$line;
-			if(strcmp($line,$stop)==0)  $drop = false;
+			$start = "#start script ".$name." from ochin web\n";
+			$stop = "#end script ".$name." from ochin web\n";
+			
+			$drop = false;
+			$reading = fopen($filename, 'r');
+			$writing = "";
+			
+			while(!feof($reading)) 
+			{
+				$line = fgets($reading);          
+				if(strcmp($line,$start)==0)  $drop = true;
+				if($drop == false) $writing = $writing.$line;
+				if(strcmp($line,$stop)==0)  $drop = false;
+			}
+			fclose($reading);
+			return $writing;
 		}
-		fclose($reading);
-		return $writing;
-		return 1;
+		else
+		{
+			return "";
+		}
 	}
 	else
 	{
-		return 0;
+		return "";
 	}
 }
 

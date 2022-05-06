@@ -1,2 +1,4 @@
 @etc@wpa_supplicant@wpa_supplicant.conf
 @etc@dhcpcd.conf
+@etc@dnsmasq.conf
+@etc@hostapd@hostapd.conf
