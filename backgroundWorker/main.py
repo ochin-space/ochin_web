@@ -197,7 +197,7 @@ def services(source, whitelistFile, whitelistSysFile):
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be loaded.");
                     
             #unload a system service
-            if(action=="sysUnload"):
+            elif(action=="sysUnload"):
                 logging.info("Unload a system service");
                 #check if the service is present in the system service the whitelist 
                 if name in whitelistSysServices:
@@ -210,7 +210,7 @@ def services(source, whitelistFile, whitelistSysFile):
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be unloaded.");
                     
             #unload a system service
-            if(action=="sysEnable"):
+            elif(action=="sysEnable"):
                 logging.info("Enable a system service");
                 #check if the service is present in the system service the whitelist 
                 if name in whitelistSysServices:
@@ -225,7 +225,7 @@ def services(source, whitelistFile, whitelistSysFile):
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be enabled.");
                     
             #unload a system service
-            if(action=="sysDisable"):
+            elif(action=="sysDisable"):
                 logging.info("Disable a system service");
                 #check if the service is present in the system service the whitelist 
                 if name in whitelistSysServices:
