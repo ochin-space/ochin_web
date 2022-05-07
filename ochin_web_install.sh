@@ -13,6 +13,11 @@ sudo apt install apache2 -y
 
 echo "change the hostname to ochin"
 echo ochin | sudo tee /etc/hostname
+echo "127.0.0.1       localhost" | sudo tee  /etc/hosts
+echo "::1             localhost ip6-localhost ip6-loopback" | sudo tee -a /etc/hosts
+echo "ff02::1         ip6-allnodes" | sudo tee -a /etc/hosts
+echo "ff02::2         ip6-allrouters" | sudo tee -a /etc/hosts
+echo "127.0.1.1       ochin" | sudo tee -a /etc/hosts
 
 #buster
 echo "Setting up PHP7.4 libs and extensions for Apache"
