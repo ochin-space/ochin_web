@@ -257,11 +257,11 @@ function hostapdStart($en)
 	{
 		//shell_exec("sudo systemctl enable hostapd.service");	//start hostapd.service
 		//shell_exec("sudo systemctl reboot");	//reboot
-		editServiceFile("hostapd","","","","","","sysLoad");
+		editServiceFile("hostapd","","","","","","sysEnable");
 	}
 	else	//STA mode
 	{
-		editServiceFile("hostapd","","","","","","unload");
+		editServiceFile("hostapd","","","","","","sysDisable");
 		//shell_exec("sudo systemctl disable hostapd.service");	//disable hostapd service
 	}
 }

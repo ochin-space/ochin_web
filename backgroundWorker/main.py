@@ -187,12 +187,56 @@ def services(source, whitelistFile, whitelistSysFile):
                 #check if the service is present in the system service the whitelist 
                 if name in whitelistSysServices:
                     logging.debug("The service \""+name+"\" is in the system service whitelist.");
+                    if(os.system("systemctl is-enabled --quiet "+name+".service && echo 1 || echo 0")==0):
+                        os.system("sudo systemctl unmask "+name+".service"); #unmask the service
                     if(os.system("sudo systemctl start "+name+".service")==0): #load the service
-                        logging.debug("Service loaded!");
+                        logging.debug("System service loaded!");
                     else:
-                        logging.error("Error loading service! ");
+                        logging.error("Error loading system service! ");
                 else: 
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be loaded.");
+                    
+            #unload a system service
+            if(action=="sysUnload"):
+                logging.info("Unload a system service");
+                #check if the service is present in the system service the whitelist 
+                if name in whitelistSysServices:
+                    logging.debug("The service \""+name+"\" is in the system service whitelist.");
+                    if(os.system("sudo systemctl stop "+name+".service")==0): #load the system service
+                        logging.debug("System service unloaded!");
+                    else:
+                        logging.error("Error unloading system service! ");
+                else: 
+                    logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be unloaded.");
+                    
+            #unload a system service
+            if(action=="sysEnable"):
+                logging.info("Enable a system service");
+                #check if the service is present in the system service the whitelist 
+                if name in whitelistSysServices:
+                    logging.debug("The service \""+name+"\" is in the system service whitelist.");
+                    if(os.system("systemctl is-enabled --quiet "+name+".service && echo 1 || echo 0")==0):
+                        os.system("sudo systemctl unmask "+name+".service"); #unmask the service
+                    if(os.system("sudo systemctl enable "+name+".service")==0): #load the service
+                        logging.debug("System service enabled!");
+                    else:
+                        logging.error("Error enabling system service! ");
+                else: 
+                    logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be enabled.");
+                    
+            #unload a system service
+            if(action=="sysDisable"):
+                logging.info("Disable a system service");
+                #check if the service is present in the system service the whitelist 
+                if name in whitelistSysServices:
+                    logging.debug("The service \""+name+"\" is in the system service whitelist.");
+                    if(os.system("sudo systemctl disable "+name+".service")==0): #load the service
+                        logging.debug("System service disabled!");
+                    else:
+                        logging.error("Error disabling system service! ");
+                else: 
+                    logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be enabled.");
+                    
             #load a service
             elif(action=="load"):
                 logging.info("Load service");
