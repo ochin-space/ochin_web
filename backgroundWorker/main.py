@@ -13,18 +13,39 @@ from pwd import getpwnam
 from xml.etree import ElementTree
     
 def moveFile(source, dest):
-    try:
-        shutil.move(source, dest);
-        logging.debug("File "+source+" updated");
-    except:
-        logging.error("Error while moving file ", source);
-        
+    if(os.path.exists(source)):
+        try:
+            shutil.move(source, dest);
+            logging.debug("File "+source+" updated");
+        except:
+            logging.error("Error while moving file \""+source+"\"");
+    else:
+        logging.warning("Cannot delete the file \""+source+"\" since it doesn't exist!");
+
+def append2File(sourceFile, destFile):
+    if(os.path.exists(destFile)):
+        try:
+            with open(sourceFile, 'r') as file:
+                script = file.read();
+            logging.debug(script);
+            content = open(destFile, 'a');
+            content.write(script);
+            content.close();
+        except:
+            logging.error("Error while appending to file \""+destFile+"\"");
+    else:
+        logging.warning("Cannot append to the file \""+destFile+"\" since it doesn't exist!");
+    
 def removeFile(source):
-    try:
-        os.remove(source)
-        logging.debug("File "+source+" removed.");
-    except:
-        logging.error("Error while deleting file ", source);
+    if(os.path.exists(source)):
+        try:
+            os.remove(source)
+            logging.debug("File "+source+" removed.");
+        except:
+            logging.error("Error while deleting file ");
+    else:
+        logging.warning("Cannot delete the file \""+source+"\" since it doesn't exist!");
+        
 
 def whitelistManager(action, name, whitelistFile):
     with open(whitelistFile, "r") as file:
@@ -345,6 +366,25 @@ def services(source, whitelistFile, whitelistSysFile):
                 logging.warning("Action type not supported!");                
         removeFile(source+services2manage[i]);
     
+def files2append(source, whitelist):
+    with open(whitelist, "r") as whitelist:
+        whiteFiles = whitelist.read().split('\n');
+    files2append = os.listdir(source);
+    for i in range(len(files2append)):
+        logging.info("\n"+time.ctime(time.time()));
+        logging.info("File append process:");
+        try:
+            whiteFiles.index(files2append[i]);
+            destFile = files2append[i].replace("@", "/");
+            logging.debug("The file \""+files2append[i]+"\" is in the whitelist.");
+            logging.info("The script will be appended!");
+            append2File(source+"/"+files2append[i],destFile);
+            removeFile(source+"/"+files2append[i]);
+        except:
+            logging.warning("The file \""+files2append[i]+"\" is not in the whitelist.");
+            logging.info("The operation is not permitted and the file \""+files2append[i]+"\" will be deleted!");
+            removeFile(source+"/"+files2append[i]);
+    
 def files2update(source, whitelist):
     with open(whitelist, "r") as whitelist:
         whiteFiles = whitelist.read().split('\n');
@@ -383,36 +423,42 @@ def files2remove(source, whitelist):
             logging.info("The operation is not permitted and the file \""+files2remove[i]+"\" will be deleted!");
 
 def checkEmptyFolders(sourcefolder):
-    if not os.path.exists(sourcefolder+"/files2update/"):
-        os.makedirs(sourcefolder+"/files2update/");
-        os.chown(sourcefolder+"/files2update/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
-        print(sourcefolder+"/files2update/ folder created");
+    if not os.path.exists(sourcefolder+"files2update/"):
+        os.makedirs(sourcefolder+"files2update/");
+        os.chown(sourcefolder+"files2update/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print(sourcefolder+"files2update/ folder created");
         
-    if not os.path.exists(sourcefolder+"/files2remove/"):
-        os.makedirs(sourcefolder+"/files2remove/");
-        os.chown(sourcefolder+"/files2remove/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
-        print(sourcefolder+"/files2remove/ folder created");
+    if not os.path.exists(sourcefolder+"files2append/"):
+        os.makedirs(sourcefolder+"files2append/");
+        os.chown(sourcefolder+"files2append/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print(sourcefolder+"files2append/ folder created");
+        
+    if not os.path.exists(sourcefolder+"files2remove/"):
+        os.makedirs(sourcefolder+"files2remove/");
+        os.chown(sourcefolder+"files2remove/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print(sourcefolder+"files2remove/ folder created");
     
-    if not os.path.exists(sourcefolder+"/modules/"):
-        os.makedirs(sourcefolder+"/modules/");
-        print(sourcefolder+"/modules/ folder created");
-        os.chown(sourcefolder+"/modules/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+    if not os.path.exists(sourcefolder+"modules/"):
+        os.makedirs(sourcefolder+"modules/");
+        print(sourcefolder+"modules/ folder created");
+        os.chown(sourcefolder+"modules/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
     
-    if not os.path.exists(sourcefolder+"/services/"):
-        os.makedirs(sourcefolder+"/services/");
-        os.chown(sourcefolder+"/services/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
-        print(sourcefolder+"/services/ folder created");
+    if not os.path.exists(sourcefolder+"services/"):
+        os.makedirs(sourcefolder+"services/");
+        os.chown(sourcefolder+"services/",getpwnam('www-data').pw_uid,getpwnam('www-data').pw_gid);
+        print(sourcefolder+"services/ folder created");
     
-    if not os.path.exists(sourcefolder+"/logs/"):
-        os.makedirs(sourcefolder+"/logs/");
-        print(sourcefolder+"/logs/ folder created");
+    if not os.path.exists(sourcefolder+"logs/"):
+        os.makedirs(sourcefolder+"logs/");
+        print(sourcefolder+"logs/ folder created");
 
 def main():
     while(True):
-        files2update(sourcefolder+"files2update/", sourcefolder+"update_whitelist.txt");
-        files2remove(sourcefolder+"files2remove/", sourcefolder+"remove_whitelist.txt");
-        kernelModules(sourcefolder+"modules/", sourcefolder+"modules_whitelist.txt");
-        services(sourcefolder+"services/", sourcefolder+"services_whitelist.txt", sourcefolder+"sysServices_whitelist.txt");
+        files2update(sourcefolder+"files2update", sourcefolder+"update_whitelist.txt");
+        files2append(sourcefolder+"files2append", sourcefolder+"append_whitelist.txt");
+        files2remove(sourcefolder+"files2remove", sourcefolder+"remove_whitelist.txt");
+        kernelModules(sourcefolder+"modules", sourcefolder+"modules_whitelist.txt");
+        services(sourcefolder+"services", sourcefolder+"services_whitelist.txt", sourcefolder+"sysServices_whitelist.txt");
         time.sleep(1);   
         
 if __name__ == "__main__":    

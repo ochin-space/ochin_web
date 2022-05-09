@@ -62,6 +62,22 @@ function updateFile($filename, $lines)
 	}
 }
 
+#append the content to the filename in the system 
+function append2File($filename, $lines)
+{	
+	if(isClientLocal())
+	{
+		$writing = fopen(Config::backgroundWorker_path."files2append/".str_replace("/", "@", $filename), 'w');
+		fputs($writing, $lines);
+		fclose($writing);	
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 //remove the script from the dhcpcd file
 function removeOldScript($name,$filename)
 {
@@ -202,20 +218,16 @@ function getAPdevice()
 
 function wpa_supplicant_conf($name,$ssid,$passw)
 {
-	if(isClientLocal())
+	if(isClientLocal() and ($name!="" && $ssid!="" && $passw!=""))
 	{
-		$content = removeOldScript($name,"/etc/wpa_supplicant/wpa_supplicant.conf");
-		if($name!="" && $ssid!="" && $passw!="")
-		{
-			$start = "#start script ".$name." from ochin web\n";
-			$stop = "#end script ".$name." from ochin web\n";
-			
-			$content = $content.$start."network={\n";
-			$content = $content."\tssid=\"".$ssid."\"\n";
-			$content = $content."\tpsk=\"".$passw."\"\n";
-			$content = $content."\tid_str=\"".$name."\"\n}\n".$stop;
-		}
-		updateFile("/etc/wpa_supplicant/wpa_supplicant.conf", $content);
+		$start = "#start script ".$name." from ochin web\n";
+		$stop = "#end script ".$name." from ochin web\n";
+		
+		$content = $start."network={\n";
+		$content = $content."\tssid=\"".$ssid."\"\n";
+		$content = $content."\tpsk=\"".$passw."\"\n";
+		$content = $content."\tid_str=\"".$name."\"\n}\n".$stop;
+		append2File("/etc/wpa_supplicant/wpa_supplicant.conf", $content);
 		return 1;
 	}
 	else
