@@ -10,90 +10,104 @@ from files import *
 from xml.etree import ElementTree
 
 def createService(name, cmd_line, unitOptions, serviceOptions, installOptions):
-    logging.debug("The \""+name+"\" service will be updated!");    
+    logging.debug("The \""+name+"\".service file will be updated");    
     with open("/lib/systemd/system/"+name+".service", 'w') as file:
         script = "[Unit]\nDescription="+name+"\n"+unitOptions+"\n\n[Service]\nExecStart="+cmd_line+"\n"+serviceOptions+"\n\n[Install]\n"+installOptions;
         file.write(script);
         file.close();
-
-def checkLoadedService(name):
-    #return os.system("systemctl is-active --quiet "+name+" && echo 1 || echo 0");                        
-    if subprocess.call(["sudo","systemctl","is-active","--quiet",name," && echo 1 || echo 0"])==0:
-        return 1;
-    else:
-        return 0;
-
+        
 def enableService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
         subprocess.run(["sudo","systemctl","unmask",name+".service"]);   
-        logging.debug("Service unmasked!");                     
+        logging.debug("Service unmasked");                     
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'disabled\n'): 
         subprocess.run(["sudo","systemctl","enable",name+".service"]);   
         is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
         if(is_enabled==b'enabled\n'): 
-            logging.debug("Service enabled!");     
+            logging.debug("Service enabled");     
         else:
-            logging.warning("Error enabling service! ");                        
-    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-    if(is_active==b'inactive\n'):       
-        subprocess.run(["sudo","systemctl","start",name+".service"]);                  
+            logging.warning("Error enabling service");     
+            return False;                   
+    if(is_enabled==b'enabled\n'): 
         is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-        if(is_active==b'active\n'): 
-            logging.debug("System loaded!");
-        else:
-            logging.warning("Error loading service! ");
+        if(is_active==b'inactive\n'):       
+            subprocess.run(["sudo","systemctl","start",name+".service"]);                  
+            is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
+            if(is_active==b'active\n'): 
+                logging.debug("System loaded");
+                return True;
+            else:
+                logging.warning("Error loading service");
+                return False;
+    else:
+        return False;
                         
 def disableService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
         subprocess.run(["sudo","systemctl","unmask",name+".service"]);   
-        logging.debug("System service unmasked!");                      
+        logging.debug("System service unmasked");                      
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'enabled\n'): 
         subprocess.run(["sudo","systemctl","disable",name+".service"]);   
         is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
         if(is_enabled==b'disabled\n'): 
-            logging.debug("Service disabled!");     
+            logging.debug("Service disabled");     
         else:
-            logging.warning("Service can't be disabled!");   
-    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-    if(is_active==b'active\n'):       
-        subprocess.run(["sudo","systemctl","stop",name+".service"]);                  
+            logging.warning("Service can't be disabled");   
+            return False;                   
+    if(is_enabled==b'disabled\n'):                   
         is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-        if(is_active==b'inactive\n'): 
-            logging.debug("Service unloaded!");
+        if(is_active==b'active\n'):       
+            subprocess.run(["sudo","systemctl","stop",name+".service"]);                  
+            is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
+            if(is_active==b'inactive\n'): 
+                logging.debug("Service unloaded");
+                return True;
+            else:
+                logging.warning("Error unloading service");
+                return False;
         else:
-            logging.warning("Error unloading service! ");
+            return True;
+    return False;
 
 def startService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
         subprocess.run(["sudo","systemctl","unmask",name+".service"]);   
-        logging.debug("System service unmasked!");      
-    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                    
-    if(is_active==b'inactive\n'): 
-        subprocess.run(["sudo","systemctl","start",name+".service"]); 
-    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                           
-    if(is_active==b'active\n'):                       
-        logging.debug("System service loaded!");
-    else:
-        logging.error("Error loading system service! ");
-
+        logging.debug("System service unmasked");      
+    if(is_enabled!=b'masked\n'): 
+        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                    
+        if(is_active==b'inactive\n'): 
+            subprocess.run(["sudo","systemctl","start",name+".service"]); 
+        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                           
+        if(is_active==b'active\n'):                       
+            logging.debug("System service loaded");
+            return True;
+        else:
+            logging.error("Error loading system service");
+            return False;
+    return False;
+    
 def stopService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
         subprocess.run(["sudo","systemctl","unmask",name+".service"]);   
-        logging.debug("System service unmasked!");      
-    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                    
-    if(is_active==b'active\n'): 
-        subprocess.run(["sudo","systemctl","stop",name+".service"]); 
-    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                           
-    if(is_active==b'inactive\n'):                       
-        logging.debug("System service unloaded!");
-    else:
-        logging.error("Error unloading system service! ");
+        logging.debug("System service unmasked");      
+    if(is_enabled!=b'masked\n'): 
+        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                    
+        if(is_active==b'active\n'): 
+            subprocess.run(["sudo","systemctl","stop",name+".service"]); 
+        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                           
+        if(is_active==b'inactive\n'):                       
+            logging.debug("System service unloaded");
+            return True;
+        else:
+            logging.error("Error unloading system service");
+            return False;
+    return False;
     
 def services(source, whitelistFile, whitelistSysFile):    
     with open(whitelistFile, "r") as file:
@@ -134,7 +148,11 @@ def services(source, whitelistFile, whitelistSysFile):
                 #check if the service is present in the system service whitelist 
                 if name in whitelistSysServices:
                     logging.debug("The service \""+name+"\" is in the system service whitelist.");
-                    startService(name);
+                    if(startService(name)):
+                        logging.info("System service loaded");
+                    else:
+                        logging.warning("Error loading system service");
+                        
                 else: 
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be loaded.");
                     
@@ -144,7 +162,10 @@ def services(source, whitelistFile, whitelistSysFile):
                 #check if the service is present in the system service whitelist 
                 if name in whitelistSysServices:
                     logging.debug("The service \""+name+"\" is in the system service whitelist.");
-                    stopService(name);
+                    if(stopService(name)):
+                        logging.info("System service unloaded");
+                    else:
+                        logging.warning("Error unloading system service");
                 else: 
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be unloaded.");
                     
@@ -154,7 +175,10 @@ def services(source, whitelistFile, whitelistSysFile):
                 #check if the service is present in the system service whitelist 
                 if name in whitelistSysServices:
                     logging.debug("The service \""+name+"\" is in the system service whitelist.");
-                    enableService(name)
+                    if(enableService(name)):
+                        logging.info("System service enabled");
+                    else:
+                        logging.warning("Error enabling system service");
                 else: 
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be enabled.");
                     
@@ -164,7 +188,10 @@ def services(source, whitelistFile, whitelistSysFile):
                 #check if the service is present in the system service whitelist 
                 if name in whitelistSysServices:        
                     logging.debug("The service \""+name+"\" is in the system service whitelist.");            
-                    disableService(name);
+                    if(disableService(name)):
+                        logging.info("System service disabled");
+                    else:
+                        logging.warning("Error disabling system service");
                 else: 
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be disabled.");
             
@@ -175,17 +202,24 @@ def services(source, whitelistFile, whitelistSysFile):
                 if name in whitelistServices:
                     logging.debug("The service \""+name+"\" is in the service whitelist.");
                 elif old_name in whitelistServices:
-                        logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the service file has been deleted.");
-                        whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist      
-                        disableService(old_name);
-                        removeFile("/lib/systemd/system/"+old_name+".service"); #remove the old named file
-                        whitelistManager(True, name, whitelistFile);    #add new name to the white list                   
+                    logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the old service file has been deleted.");
+                    if(disableService(old_name)):
+                        logging.info("Service disabled");
+                    else:
+                        logging.warning("Error disabling service");
+                    whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist      
+                    removeFile("/lib/systemd/system/"+old_name+".service"); #remove the old named file
+                    whitelistManager(True, name, whitelistFile);    #add new name to the white list                   
                 else:
                     logging.debug("The service \""+name+"\" was not in the whitelist.\nThe service has been added to the whitelist.");
                     whitelistManager(True, name, whitelistFile);  
-                #create the files needed to start the service at boot
+                #create the files needed to start the service at boot   
+                removeFile("/lib/systemd/system/"+name+".service"); #remove the old named file
                 createService(name, cmd_line, unitOptions, serviceOptions, installOptions);    
-                enableService(name);
+                if(startService(name)):
+                    logging.info("Service loaded");
+                else:
+                    logging.warning("Error loading service");
        
             #unload a service
             elif(action=="unload"):
@@ -194,13 +228,23 @@ def services(source, whitelistFile, whitelistSysFile):
                 if name in whitelistServices:
                     logging.debug("The service \""+name+"\" is in the service whitelist.");
                     createService(name, cmd_line, unitOptions, serviceOptions, installOptions); 
-                    stopService(name);
+                    if(stopService(name)):
+                        logging.info("Service unloaded");
+                    else:
+                        logging.warning("Error unloading service");
                 elif old_name in whitelistServices:
-                    logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the service file has been deleted.");
+                    logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the old service file has been deleted.");
+                    if(stopService(old_name)):
+                        logging.info("Service unloaded");
+                    else:
+                        logging.warning("Error unloading service");
                     whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist      
                     #create the files needed to start the service at boot
-                    createService(name, cmd_line, unitOptions, serviceOptions, installOptions);  
-                    stopService(old_name);
+                    createService(name, cmd_line, unitOptions, serviceOptions, installOptions); 
+                    if(stopService(name)):
+                        logging.info("Service unloaded");
+                    else:
+                        logging.warning("Error unloading service"); 
                 else:
                     logging.warning("The service \""+name+"\" was not in the service whitelist.\nThe service cannot be unloaded.");
                     
@@ -211,7 +255,11 @@ def services(source, whitelistFile, whitelistSysFile):
                 if name in whitelistServices:
                     logging.debug("The service \""+name+"\" is in the service whitelist.");
                 elif old_name in whitelistServices:
-                        logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the service file has been deleted.");
+                        logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the old service file has been deleted.");                        
+                        if(disableService(old_name)):
+                            logging.info("Service disabled");
+                        else:
+                            logging.warning("Error disabling service");
                         whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist      
                         removeFile("/lib/systemd/system/"+old_name+".service"); #remove the old named file
                         whitelistManager(True, name, whitelistFile);    #add new name to the white list                   
@@ -220,44 +268,61 @@ def services(source, whitelistFile, whitelistSysFile):
                     whitelistManager(True, name, whitelistFile);    #add new name to the white list                   
                 #create the files needed to start the service at boot
                 createService(name, cmd_line, unitOptions, serviceOptions, installOptions);    
-                enableService(name);
+                if(enableService(name)):
+                    logging.info("Service enabled");
+                else:
+                    logging.warning("Error enabling service");
                     
             #disable a service
             elif(action=="disable"):
                 logging.info("Disable a service");
                 #check if the service is present in the service the whitelist 
                 if name in whitelistServices:        
-                    logging.debug("The service \""+name+"\" is in the service whitelist.");
-                    createService(name, cmd_line, unitOptions, serviceOptions, installOptions); 
-                    disableService(name);
+                    logging.debug("The service \""+name+"\" is in the whitelist.");     
+                    if(disableService(name)):
+                        logging.info("Service disabled");
+                    else:
+                        logging.warning("Error disabling service");
                 elif old_name in whitelistServices:
-                    logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the service file has been deleted.");
+                    logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the old service file has been disabled");                                        
+                    if(disableService(old_name)):
+                        logging.info("Service disabled");
+                    else:
+                        logging.warning("Error disabling service");
                     whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist      
                     removeFile("/lib/systemd/system/"+old_name+".service"); #remove the old named file 
-                    #create the files needed to start the service at boot
-                    createService(name, cmd_line, unitOptions, serviceOptions, installOptions);  
-                    disableService(name);
+                    whitelistManager(True, name, whitelistFile);    #add new name to the white list             
                 else:
-                    logging.warning("The service \""+name+"\" was not in the service whitelist.\nThe service cannot be disabled.");
+                    whitelistManager(True, name, whitelistFile);    #add new name to the white list     
+                    logging.warning("The service \""+name+"\" was not in the service whitelist.\nThe service has been created but disabled.");
+                createService(name, cmd_line, unitOptions, serviceOptions, installOptions);    
                      
             #unload and remove the service files from the system
             elif(action=="remove"):
                 logging.info("Remove service"); 
                 #remove the service from the whitelist if it's present
-                if name in whitelistServices or old_name in whitelistServices:        
-                    logging.debug("The service \""+name+"\" is in the service whitelist.");
-                    disableService(name);
+                if name in whitelistServices:        
+                    logging.debug("The service \""+name+"\" is in the service whitelist.");                                        
+                    if(disableService(name)):
+                        logging.info("Service disabled");
+                    else:
+                        logging.warning("Error disabling service");
                     removeFile("/lib/systemd/system/"+name+".service");
-                    logging.info("Service removed!");                    
+                    whitelistManager(False, name, whitelistFile);   #remove the old name from the whitelist      
+                    logging.info("Service removed");                    
                 elif old_name in whitelistServices:
-                        logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe whitelist has been updated and the service file has been deleted.");
-                        whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist      
-                        disableService(old_name);
-                        removeFile("/lib/systemd/system/"+old_name+".service"); #remove the old named file 
-                        logging.info("Service removed!");
+                    logging.debug("The service name \""+old_name+"\" is changed to \""+name+"\".\nThe service file has been deleted.");
+                    whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist                                         
+                    if(disableService(old_name)):
+                        logging.info("Service disabled");
+                    else:
+                        logging.warning("Error disabling service");
+                    removeFile("/lib/systemd/system/"+old_name+".service"); #remove the old named file 
+                    whitelistManager(False, old_name, whitelistFile);   #remove the old name from the whitelist      
+                    logging.info("Service removed");
                 else:
                     logging.warning("The service \""+name+"\" was not in the service whitelist.\nThe service cannot be removed.");
             else:
-                logging.warning("Action type not supported!");                
+                logging.warning("Action type not supported");                
         removeFile(source+services2manage[i]);
     
