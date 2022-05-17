@@ -9,13 +9,15 @@ import logging
 from files import *
 from xml.etree import ElementTree
 
+#create a new service
 def createService(name, cmd_line, unitOptions, serviceOptions, installOptions):
     logging.debug("The \""+name+"\".service file will be updated");    
     with open("/lib/systemd/system/"+name+".service", 'w') as file:
         script = "[Unit]\nDescription="+name+"\n"+unitOptions+"\n\n[Service]\nExecStart="+cmd_line+"\n"+serviceOptions+"\n\n[Install]\n"+installOptions;
         file.write(script);
         file.close();
-        
+
+#enable an existing service        
 def enableService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
@@ -30,20 +32,21 @@ def enableService(name):
         else:
             logging.warning("Error enabling service");     
             return False;                   
-    if(is_enabled==b'enabled\n'): 
-        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-        if(is_active==b'inactive\n'):       
-            subprocess.run(["sudo","systemctl","start",name+".service"]);                  
-            is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-            if(is_active==b'active\n'): 
-                logging.debug("System loaded");
-                return True;
-            else:
-                logging.warning("Error loading service");
-                return False;
+    #if(is_enabled==b'enabled\n'): 
+    #    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
+    #    if(is_active==b'inactive\n'):       
+    #        subprocess.run(["sudo","systemctl","start",name+".service"]);                  
+    #        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
+    #        if(is_active==b'active\n'): 
+    #            logging.debug("System loaded");
+    #            return True;
+    #        else:
+    #            logging.warning("Error loading service");
+    #            return False;
     else:
         return False;
-                        
+   
+#disable an existing service                             
 def disableService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
@@ -58,21 +61,22 @@ def disableService(name):
         else:
             logging.warning("Service can't be disabled");   
             return False;                   
-    if(is_enabled==b'disabled\n'):                   
-        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-        if(is_active==b'active\n'):       
-            subprocess.run(["sudo","systemctl","stop",name+".service"]);                  
-            is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
-            if(is_active==b'inactive\n'): 
-                logging.debug("Service unloaded");
-                return True;
-            else:
-                logging.warning("Error unloading service");
-                return False;
-        else:
-            return True;
+    #if(is_enabled==b'disabled\n'):                   
+    #    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
+    #    if(is_active==b'active\n'):       
+    #        subprocess.run(["sudo","systemctl","stop",name+".service"]);                  
+    #        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
+    #        if(is_active==b'inactive\n'): 
+    #            logging.debug("Service unloaded");
+    #            return True;
+    #        else:
+    #            logging.warning("Error unloading service");
+    #            return False;
+    #    else:
+    #        return True;
     return False;
 
+#start an existing service        
 def startService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
@@ -90,7 +94,8 @@ def startService(name):
             logging.error("Error loading system service");
             return False;
     return False;
-    
+  
+#stop an existing service        
 def stopService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
     if(is_enabled==b'masked\n'): 
@@ -109,6 +114,7 @@ def stopService(name):
             return False;
     return False;
     
+#service manager
 def services(source, whitelistFile, whitelistSysFile):    
     with open(whitelistFile, "r") as file:
         whitelistServices = file.read().split('\n');
@@ -196,7 +202,7 @@ def services(source, whitelistFile, whitelistSysFile):
                     logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be disabled.");
             
             #load a service
-            if(action=="load"):
+            elif(action=="load"):
                 logging.info("Load a service");
                 #check if the service is present in the service whitelist 
                 if name in whitelistServices:
