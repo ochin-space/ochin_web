@@ -4,15 +4,34 @@
 * This code is a part of the ochin project (https://github.com/ochin-space)
 * The LICENSE file is included in the project's root. 
 */ 
-session_start();
+if(!is_dir("./db")) mkdir("./db"); //check if "db" folder exist and eventually create it
+if(!is_dir("./tmp")) mkdir("./tmp"); //check if "tmp" folder exist and eventually create it
+
+require 'helper/init.php';
 require 'helper/configWiFi.php';
-require 'helper/Config.php';
+
+$dbConstructor->createTable_networks();
 
 if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true)) 
 {
     if(isset($_POST['update'])) 
 	{
-		configWiFi($_POST['en'],$_POST['name'],$_POST['ccode'],$_POST['mode'],$_POST['ssid'],$_POST['passw'],$_POST['staticipSw'],$_POST['ipaddress'],$_POST['netmask'],$_POST['dhcpstart'],$_POST['dhcpstop']);
+		if($_POST['mode'] == 'false') $passw = $dbConstructor->wpa_passphrase($_POST['ssid'], $_POST['passw']);	//encrypt only if in STA mode
+		else $passw = $_POST['passw'];
+		$dbConstructor->updateRow_networks($_POST['id'], $_POST['en'], $_POST['name'], $_POST['staticipSw'], $_POST['mode'], $_POST['ccode'], $_POST['ssid'],
+		$passw,$_POST['ipaddress'],$_POST['netmask'],$_POST['dhcpstart'],$_POST['dhcpstop']);
+		configWiFi($_POST['id'],$_POST['en'],$_POST['name'],$_POST['ccode'],$_POST['mode'],$_POST['ssid'],$passw,$_POST['staticipSw'],$_POST['ipaddress'],$_POST['netmask'],$_POST['dhcpstart'],$_POST['dhcpstop']);
+    }
+	
+    if(isset($_POST['delete'])) 
+	{
+		removeConfig($_POST['id'],$_POST['name'], $_POST['mode'], $_POST['ssid']);
+		$dbConstructor->deleteRow_networks($_POST['id']);
+    }
+		
+    if(isset($_POST['add'])) 
+	{
+        $dbConstructor->insertRow_networks('','','','','','','','','','','','');
     }
 	
 	function getAdapters()
@@ -37,7 +56,17 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 		}
 		return $out;
 	}
-	$rows = getAdapters();
+	
+	function getAdapterList()
+	{
+		$adapters = getAdapters();
+		$select = "";
+		foreach ($adapters as $index=>$row): 
+			$select = $select.'<option>'.$row['name'].'</option>';
+		endforeach;
+		return $select;		
+	}
+	$rows = $dbConstructor->getRows_networks();
 ?>
 
 <!DOCTYPE html>
@@ -68,38 +97,60 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 					<div class="d-flex justify-content-end mb-2 mt-5" >
 						<button type="button" class="d-flex me-4" name="info" style="background-color: Transparent; border: none;"  title="Click for info about this page" data-bs-toggle='modal' data-bs-target='#infoModal'"><img  width="40" height="40" src="icons/info.png"></button>
 					</div>
-				</div>        
+				</div>   
 				<div id="loader" class=""></div>
+				<div class="d-flex justify-content-end  mb-2 mt-2" >
+					<div class="d-flex pe-3 pt-1">Add New Network Config</div>
+					<button type="button" class="d-flex me-4" name="add" value="add" style="background-color: Transparent; border: none;" data-bs-toggle='modal' title="Click to add a new Network Config" data-bs-target='#addModal' data-bs-name="add"><img  width="30" height="30" src="icons/add.png"></button>
+				</div>
 				<div class="row p-3 rounded-2" style="background-color:white;">
 					<div class="row">
-						<div class="fs-3 text-muted">List of Network Adapters</div>
+						<div class="fs-3 text-muted">List of Network Configurations</div>
 					</div>
 					<div class="row">
 						<div class="table-responsive" style="max-height:600px;">
 							<table  class="table table-light table-striped" id="autoexecTable">
 								<thead>
 									<tr>
-										<th scope="col">Name</th>
-										<th scope="col">Status</th>
+										<th scope="col">Enable</th>
+										<th scope="col">Runnable</th>
+										<th scope="col">Adapter Name</th>
+										<th scope="col">AP Mode</th>
+										<th scope="col">Static IP Mode</th>
+										<th scope="col">SSID</th>
 										<th scope="col">IP Address</th>
-										<th scope="col">MAC Address</th>
-										<th scope="col">Info</th>
+										<th scope="col">Subnet Mask</th>
+										<th scope="col">sDHCP start</th>
+										<th scope="col">sDHCP stop</th>
+										<th scope="col"></th>
 										<th scope="col"></th>
 									</tr>
 								</thead>
 								<tbody>
 									<?php foreach ($rows as $index=>$row) : ?>
 										<tr>
+											<td width='1%' white-space='nowrap'><?php if($row['en']=='true') { echo '<img src="icons/check.png" width="25" height="25"/>'; } else { echo '<img src="icons/uncheck.png" width="25" height="25"/>'; }?></td>
+											<td width='1%' white-space='nowrap'><?php if($row['running']=='true') { echo '<img src="icons/check.png" width="25" height="25"/>'; } else { echo '<img src="icons/uncheck.png" width="25" height="25"/>'; }?></td>
 											<td value="<?php echo $row['name']; ?>"><?php echo $row['name']; ?></td>
-											<td value="<?php echo $row['status']; ?>"><?php echo $row['status']; ?></td>
-											<td value="<?php echo $row['IP']; ?>"><?php echo $row['IP']; ?></td>
-											<td value="<?php echo $row['MAC']; ?>"><?php echo $row['MAC']; ?></td>
-											<td value="<?php echo $row['info']; ?>"><?php echo $row['info']; ?></td>
+											<td value="<?php echo $row['APmode']; ?>"><?php echo $row['APmode']; ?></td>
+											<td value="<?php echo $row['static']; ?>"><?php echo $row['static']; ?></td>
+											<td value="<?php echo $row['ssid']; ?>"><?php echo $row['ssid']; ?></td>
+											<td value="<?php echo $row['ipaddress']; ?>"><?php echo $row['ipaddress']; ?></td>
+											<td value="<?php echo $row['netmask']; ?>"><?php echo $row['netmask']; ?></td>
+											<td value="<?php echo $row['dhcpIpStart']; ?>"><?php echo $row['dhcpIpStart']; ?></td>
+											<td value="<?php echo $row['dhcpIpStop']; ?>"><?php echo $row['dhcpIpStop']; ?></td>
 											<td width='1%' white-space='nowrap'>
 												<button type='button' class='btn btn-primary btn-sm' title="Click to edit the config" data-bs-toggle='modal' data-bs-target='#editModal' 
-												data-bs-status="<?php echo $row['status'];?>" data-bs-name="<?php echo $row['name'];?>" data-bs-ip="<?php echo $row['IP'];?>">
+												data-bs-id="<?php echo $row['id'];?>" data-bs-en="<?php echo $row['en'];?>" data-bs-APmode="<?php echo $row['APmode'];?>" data-bs-name="<?php echo $row['name'];?>" data-bs-static="<?php echo $row['static'];?>"
+												data-bs-ssid="<?php echo $row['ssid'];?>" data-bs-passw="<?php echo $row['password'];?>" data-bs-cCode="<?php echo $row['cCode'];?>"  data-bs-ipaddress="<?php echo $row['ipaddress'];?>" data-bs-netmask="<?php echo $row['netmask'];?>"
+												data-bs-dhcpIpStart="<?php echo $row['dhcpIpStart'];?>" data-bs-dhcpIpStop="<?php echo $row['dhcpIpStop'];?>">
 												Edit</button>
-											</td> 
+											</td>          
+											<td width='1%' white-space='nowrap'>
+												<button type='button' class='btn btn-primary btn-sm' title="Click to delete the Command" data-bs-toggle='modal' data-bs-target='#deleteModal' data-bs-id="<?php echo $row['id'];?>" data-bs-name="<?php echo $row['name'];?>"
+												data-bs-ssid="<?php echo $row['ssid'];?>" data-bs-APmode="<?php echo $row['APmode'];?>">
+												Delete</button>
+											</td>
 										</tr>
 									<?php endforeach; ?>
 								</tbody>
@@ -132,6 +183,12 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 						<div class="modal-title mb-5">
 							<label for="adapter-name" class="col-form-label fs-4">Adapter Name: </label>
 							<label id="adapter-name" class="fs-4" value="">
+						</div>
+						<div class="ms-4">
+							<select id="adapterSelect" class="form-select" onchange="AdapterListSelectOnChange(this)">
+								<option selected>Select an adapter from the list</option>			
+								<?php echo getAdapterList();?>
+							</select>
 						</div>
 						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
@@ -220,18 +277,36 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 						</form>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle='modal' data-bs-target='#confirmModal'>Update</button>
+                        <button type='button' class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#confirmModal">Confirm</button> 
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 					</div>
 				</div>
 			</div>
 		</div>
 
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Are you sure you want to delete this Configuration?</h5>
+                    </div>
+                    <input hidden type="text" class="form-control" id="deleteModal-id">
+                    <input hidden type="text" class="form-control" id="deleteModal-name">
+                    <input hidden type="text" class="form-control" id="deleteModal-ssid">
+                    <input hidden type="text" class="form-control" id="deleteModal-mode">
+                    <div class="modal-footer">
+                        <button type='button' class="btn btn-primary" data-bs-dismiss="modal" onclick="deleteRow()">Yes</button> 
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
 				<div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addModalLabel">The changes will take effect after the next system reboot.<br>Are you sure you want to update the network configuration?</h5>
+                        <h5 class="modal-title" id="addModalLabel">Are you sure you want to update the network configuration?<br>The new network configuration will be available after the next system reboot.</h5>
                     </div>
                     <div class="modal-footer">
                         <button type='button' class="btn btn-primary" data-bs-dismiss="modal" onclick="update()">Yes</button> 
@@ -278,6 +353,54 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 
 <script>
 isClientLocal();
+	
+function insertRow()
+{
+	if(<?php echo isClientLocal();?>)
+	{
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "add=1",
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
+}
+
+function deleteRow()
+{
+	if(<?php echo isClientLocal();?>)
+	{
+		document.getElementById('loader').innerHTML = '<div class="loader"></div>';
+		id = document.getElementById('deleteModal-id').value;
+		ssid = document.getElementById('deleteModal-ssid').value;		
+		mode = document.getElementById('deleteModal-mode').value;		
+		name = document.getElementById('deleteModal-name').value;				
+		$.ajax({
+			type : "POST",  //type of method
+			url  : "index.php",  //your page
+			data: "delete=1&id=" + id + "&name=" + name + "&mode=" + mode + "&ssid=" + ssid,
+			success: function(msg)
+			{
+				location.reload(true);
+			},
+			error: function() {  }
+		});
+	}
+	else
+	{
+		alert("The client is not connected locally. The operation is denied!");
+	}
+}
 
 function isClientLocal()
 { 
@@ -292,9 +415,14 @@ function isClientLocal()
 	}
 }
 
+function AdapterListSelectOnChange(selectBox)
+{
+    document.getElementById('adapter-name').value = selectBox.options[selectBox.selectedIndex].text;	
+}
+
 function check_TCPIP_Quartet(a,b,c,d)
 {
-	if((a>=0&&a<=255)&&(b>=0&&b<=255)&&(c>=0&&c<=255)&&(d>=0&&d<=255)) return true
+	if((a>=0&&a<=255&&a!="")&&(b>=0&&b<=255&&b!="")&&(c>=0&&c<=255&&c!="")&&(d>=0&&d<=255&&d!="")) return true
 	else return false
 }
 
@@ -304,7 +432,14 @@ function update()
 	{		
 		en = document.getElementById('enableAdapter').checked;
 		mode = document.getElementById('modeSwitch').checked;
-		name = document.getElementById('adapter-name').innerHTML;
+		name = document.getElementById('adapter-name').value;
+		id = document.getElementById('recipient-id').value;	
+		if(name=="") 
+		{
+			document.getElementById('alertModalbody').innerHTML = "<p>Please select an adapter for your configuration</p>";
+			$('#alertModal').modal('show');
+			return;
+		}	
 		if(document.getElementById('ccode').value.length>=2 || mode==false) ccode = document.getElementById('ccode').value;
 		else
 		{
@@ -313,61 +448,59 @@ function update()
 			return;
 		}	
 		if(document.getElementById('ssid').value) ssid = document.getElementById('ssid').value;
-		else if(en==true)
+		else
 		{
 			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid SSID</p>";
 			$('#alertModal').modal('show');
 			return;
 		}
-		else ssid = "";
 		if(document.getElementById('passwd').value.length>=8) passw = document.getElementById('passwd').value;
-		else if(en==true)
+		else
 		{
 			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid Password (8 char min)</p>";
 			$('#alertModal').modal('show');
 			return;
 		}
-		else passw = "";
 		staticipSw = document.getElementById('staticIpSwitch').checked;
-		if(staticipSw || mode)
+		a = document.getElementById('ipAddr0').value;
+		b = document.getElementById('ipAddr1').value;
+		c = document.getElementById('ipAddr2').value;
+		d = document.getElementById('ipAddr3').value;
+		if(check_TCPIP_Quartet(a,b,c,d)) ipaddress = a + "\." + b + "\." + c + "\." + d; 
+		else 
 		{
-			a = document.getElementById('ipAddr0').value;
-			b = document.getElementById('ipAddr1').value;
-			c =document.getElementById('ipAddr2').value;
-			d = document.getElementById('ipAddr3').value;
-			if(check_TCPIP_Quartet(a,b,c,d)) ipaddress = a + "\." + b + "\." + c + "\." + d; 
-			else 
-			{
-				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid IP Address</p>";
-				$('#alertModal').modal('show');
-				return;
-			}
-			
-			a = document.getElementById('nm0').value;
-			b = document.getElementById('nm1').value;
-			c =document.getElementById('nm2').value;
-			d = document.getElementById('nm3').value;
-			if(check_TCPIP_Quartet(a,b,c,d)) netmask = a + "\." + b + "\." + c + "\." + d; 
-			else 
-			{
-				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid NetMask</p>";
-				$('#alertModal').modal('show');
-				return;
-			}
+			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid IP Address</p>";
+			$('#alertModal').modal('show');
+			return;
 		}
-		else
+		
+		a = document.getElementById('nm0').value;
+		b = document.getElementById('nm1').value;
+		c = document.getElementById('nm2').value;
+		d = document.getElementById('nm3').value;
+		if(check_TCPIP_Quartet(a,b,c,d)) netmask = a + "\." + b + "\." + c + "\." + d; 
+		else 
 		{
-			ipaddress="";
-			netmask="";
+			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid NetMask</p>";
+			$('#alertModal').modal('show');
+			return;
 		}
 		
 		if(mode)
 		{
 			a = document.getElementById('dhcps0').value;
 			b = document.getElementById('dhcps1').value;
-			c =document.getElementById('dhcps2').value;
+			c = document.getElementById('dhcps2').value;
 			d = document.getElementById('dhcps3').value;
-			if(check_TCPIP_Quartet(a,b,c,d)) dhcpstart = a + "\." + b + "\." + c + "\." + d; 
+			if(check_TCPIP_Quartet(a,b,c,d))
+			{
+				if(d==document.getElementById('ipAddr3').value)
+				{
+					d = parseInt(document.getElementById('ipAddr3').value)+1;
+					document.getElementById('dhcps3').value = d;
+				}
+				dhcpstart = a + "\." + b + "\." + c + "\." + d; 
+			}
 			else 
 			{
 				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid DHCP Start Ip Address</p>";
@@ -377,9 +510,17 @@ function update()
 			
 			a = document.getElementById('dhcpe0').value;
 			b = document.getElementById('dhcpe1').value;
-			c =document.getElementById('dhcpe2').value;
+			c = document.getElementById('dhcpe2').value;
 			d = document.getElementById('dhcpe3').value;
-			if(check_TCPIP_Quartet(a,b,c,d)) dhcpstop = a + "\." + b + "\." + c + "\." + d; 
+			if(check_TCPIP_Quartet(a,b,c,d))
+			{
+				if(parseInt(d)<=parseInt(document.getElementById('dhcps3').value))
+				{
+					d = parseInt(document.getElementById('dhcps3').value)+1;
+					document.getElementById('dhcpe3').value = d;
+				}
+				dhcpstop = a + "\." + b + "\." + c + "\." + d; 
+			}
 			else 
 			{
 				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid DHCP Stop Ip Address</p>";
@@ -398,7 +539,7 @@ function update()
 		$.ajax({
 			type : "POST",  //type of method
 			url  : "index.php",  //your page
-			data: "update&en=" + en + "&name=" + name+ "&ccode=" + ccode + "&mode=" + mode + "&ssid=" + ssid + "&passw=" + passw 
+			data: "update&id=" + id + "&en=" + en + "&name=" + name+ "&ccode=" + ccode + "&mode=" + mode + "&ssid=" + ssid + "&passw=" + passw 
 			+ "&staticipSw=" + staticipSw + "&ipaddress=" + ipaddress + "&netmask=" + netmask + "&dhcpstart=" + dhcpstart 
 			+ "&dhcpstop=" + dhcpstop,
 			success: function(msg)
@@ -486,14 +627,13 @@ function enAdapter()
 {
 	if(document.getElementById('enableAdapter').checked)
 	{
-		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Enabled";
-		modeSet();
+		document.getElementById('enableAdapterLabel').innerHTML = "Configuration Enabled";
 	}
 	else
 	{
-		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Disabled";
-		adaptDisabled();
+		document.getElementById('enableAdapterLabel').innerHTML = "Configuration Disabled";
 	}
+	modeSet();
 }
 
 function ipAddr0change()
@@ -519,25 +659,97 @@ function ipAddr3change()
 	document.getElementById('dhcps3').value = parseInt(document.getElementById('ipAddr3').value)+1;
 }
 
+var deleteModal = document.getElementById('deleteModal');
+deleteModal.addEventListener('show.bs.modal', function (event) {
+	// Button that triggered the modal
+	button = event.relatedTarget;
+	// Extract info from data-bs-* attributes
+	var id = button.getAttribute('data-bs-id');
+	var name = button.getAttribute('data-bs-name');
+	var APmode = button.getAttribute('data-bs-APmode');
+	var ssid = button.getAttribute('data-bs-ssid');
+	document.getElementById('deleteModal-name').value = name;
+	document.getElementById('deleteModal-mode').value = APmode;
+	document.getElementById('deleteModal-ssid').value = ssid;
+	document.getElementById('deleteModal-id').value = id;
+})
+
+
 var editModal = document.getElementById('editModal');
 editModal.addEventListener('show.bs.modal', function (event) {
 	// Button that triggered the modal
 	button = event.relatedTarget;
-	var adapterStat = button.getAttribute('data-bs-status');
+	var en = button.getAttribute('data-bs-en');
+	var id = button.getAttribute('data-bs-id');
 	var name = button.getAttribute('data-bs-name');
-	document.getElementById('adapter-name').innerHTML = name;
-	document.getElementById('modeSwitch').checked = false;
-	if(adapterStat == 'UP')
+	var staticIP = button.getAttribute('data-bs-static');
+	var staMode = button.getAttribute('data-bs-APmode');
+	var cCode = button.getAttribute('data-bs-cCode');
+	var ipaddress = button.getAttribute('data-bs-ipaddress');
+	var netmask = button.getAttribute('data-bs-netmask');
+	var dhcpIpStart = button.getAttribute('data-bs-dhcpIpStart');
+	var dhcpIpStop = button.getAttribute('data-bs-dhcpIpStop');
+	var ssid = button.getAttribute('data-bs-ssid');
+	var passw = "";
+	document.getElementById('recipient-id').value = id;	
+    var adapters = document.getElementById("adapterSelect");
+    for(i=0; i<document.getElementById("adapterSelect").length;i++){
+        if (adapters[i].text === name) {
+			adapterSelect.selectedIndex = i;
+			AdapterListSelectOnChange(adapters);
+        }
+
+    }
+	if(staMode=="true")	document.getElementById('modeSwitch').checked = true;
+	else document.getElementById('modeSwitch').checked = false;
+	
+	if(staticIP=="true") document.getElementById('staticIpSwitch').checked = true;
+	else document.getElementById('staticIpSwitch').checked = false;
+	
+	document.getElementById('enableAdapterLabel').innerHTML = "Configuration Enabled";
+	document.getElementById('ssid').value = ssid;
+	document.getElementById('passwd').value = passw;	
+	modeSet();
+	if(ipaddress!="")
+	{
+		let ipaddress_array = ipaddress.split('.');
+		document.getElementById('ipAddr0').value = ipaddress_array[0];
+		document.getElementById('ipAddr1').value = ipaddress_array[1];
+		document.getElementById('ipAddr2').value = ipaddress_array[2];
+		document.getElementById('ipAddr3').value = ipaddress_array[3];
+	}
+	if(netmask!="")
+	{
+		let netmask_array = netmask.split('.');
+		document.getElementById('nm0').value = netmask_array[0];
+		document.getElementById('nm1').value = netmask_array[1];
+		document.getElementById('nm2').value = netmask_array[2];
+		document.getElementById('nm3').value = netmask_array[3];
+	}
+	if(document.getElementById('modeSwitch').checked)
+	{
+		document.getElementById('ccode').value = cCode;
+		array = dhcpIpStart.split('.');
+		document.getElementById('dhcps0').value = array[0];
+		document.getElementById('dhcps1').value = array[1];
+		document.getElementById('dhcps2').value = array[2];
+		document.getElementById('dhcps3').value = array[3];
+		array = dhcpIpStop.split('.');
+		document.getElementById('dhcpe0').value = array[0];
+		document.getElementById('dhcpe1').value = array[1];
+		document.getElementById('dhcpe2').value = array[2];
+		document.getElementById('dhcpe3').value = array[3];
+		
+	}
+	
+	if(en == 'true')
 	{
 		document.getElementById('enableAdapter').checked = true;
-		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Enabled";
-		STAmode();
 	}
 	else
 	{
 		document.getElementById('enableAdapter').checked = false;
-		document.getElementById('enableAdapterLabel').innerHTML = "Adapter Disabled";
-		adaptDisabled();
+		document.getElementById('enableAdapterLabel').innerHTML = "Configuration Disabled";
 	}
 })
 

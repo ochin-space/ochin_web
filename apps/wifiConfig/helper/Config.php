@@ -5,6 +5,7 @@
 * The LICENSE file is included in the project's root. 
 */ 
 class Config {
+    const networkConfig_db = 'db/networkConfig.db';
     const backgroundWorker_path = './../../backgroundWorker/exchange/';
     const topbar_path = '../../navbar.php';
     const jQueryPath = "../../lib/jquery-3.6.0.min.js";

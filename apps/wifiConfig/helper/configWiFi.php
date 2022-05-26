@@ -83,7 +83,7 @@ function removeOldScript($name,$filename)
 {
 	if(isClientLocal())
 	{
-		if(file_exists())
+		if(file_exists($filename))
 		{
 			$start = "#start script ".$name." from ochin web\n";
 			$stop = "#end script ".$name." from ochin web\n";
@@ -216,19 +216,38 @@ function getAPdevice()
 	}
 }
 
-function wpa_supplicant_conf($name,$ssid,$passw)
+function wpa_supplicant_conf($id, $en,$name,$ssid,$passw)
 {
-	if(isClientLocal() and ($name!="" && $ssid!="" && $passw!=""))
+	if(isClientLocal())
 	{
-		$start = "#start script ".$name." from ochin web\n";
-		$stop = "#end script ".$name." from ochin web\n";
-		
-		$content = $start."network={\n";
-		$content = $content."\tssid=\"".$ssid."\"\n";
-		$content = $content."\tpsk=\"".$passw."\"\n";
-		$content = $content."\tid_str=\"".$name."\"\n}\n".$stop;
-		append2File("/etc/wpa_supplicant/wpa_supplicant.conf", $content);
-		return 1;
+		if($name!="" && $ssid!="" && $passw!="")
+		{
+			$content = removeOldScript($id,"/etc/wpa_supplicant/wpa_supplicant.conf");
+			$start = "#start script ".$id." from ochin web\n";
+			$stop = "#end script ".$id." from ochin web\n";
+			if($en == 'true')
+			{				
+				$content = $content.$start."network={\n";
+				$content = $content."    ssid=\"".$ssid."\"\n";
+				$content = $content."    psk=".$passw."\n";
+				#$content = $content."    id_str=".$name."\n}\n";
+				$content = $content."}\n".$stop;
+			}
+			else
+			{
+				$content = $content.$start."#network={\n";
+				$content = $content."    #ssid=\"".$ssid."\"\n";
+				$content = $content."    #psk=\"".$passw."\"\n";
+				#$content = $content."    #id_str=\"".$name."\"\n";
+				$content = $content."#}\n".$stop;
+			}
+			updateFile("/etc/wpa_supplicant/wpa_supplicant.conf", $content);
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 	else
 	{
@@ -263,22 +282,38 @@ function editServiceFile($serviceName,$serviceNameOld,$cmd_line,$unitOptions,$se
 	}
 }
 
-function hostapdStart($en)
-{	
-	if($en)	//for AP mode
+function removeConfig($id, $name,$mode,$ssid)
+{
+	if(isClientLocal())
 	{
-		//shell_exec("sudo systemctl enable hostapd.service");	//start hostapd.service
-		//shell_exec("sudo systemctl reboot");	//reboot
-		editServiceFile("hostapd","","","","","","sysEnable");
+		if($mode == 'true') //AP mode
+		{			
+			dnsmasq_conf(false,$name,$ipaddress,$netmask,$dhcpstart,$dhcpstop);	//remove the DHCP server config 
+			hostapd_conf(false,$name,$ccode,$ssid,$passw);	//remove the AP ssid, passwd, ccode etc..  
+			removeFile("/etc/dhcpcd.conf");
+		}	
+		#remove the script from wpa_supplicant.conf
+		$content = removeOldScript($id,"/etc/wpa_supplicant/wpa_supplicant.conf");
+		updateFile("/etc/wpa_supplicant/wpa_supplicant.conf", $content);
 	}
-	else	//STA mode
+	else
 	{
-		editServiceFile("hostapd","","","","","","sysDisable");
-		//shell_exec("sudo systemctl disable hostapd.service");	//disable hostapd service
+		return 0;
 	}
 }
 
-function configWiFi($en,$name,$ccode,$mode,$ssid,$passw,$staticipSw,$ipaddress,$netmask,$dhcpstart,$dhcpstop)
+function restartNetwork()
+{	
+	editServiceFile("daemon-reload","","","","","","sysUnit");
+	sleep(2);	//wait for the command to be executed by the background worker
+	editServiceFile("dhcpcd","","","","","","sysReload");	//reload dhcpcd service  
+	sleep(2);	//wait for the command to be executed by the background worker
+	editServiceFile("dnsmasq","","","","","","sysReload");	//reload dnsmasq service 
+	//sleep(2);	//wait for the command to be executed by the background worker
+	//editServiceFile("hostapd","","","","","","sysReload");	//reload hostapd service
+}
+
+function configWiFi($id,$en,$name,$ccode,$mode,$ssid,$passw,$staticipSw,$ipaddress,$netmask,$dhcpstart,$dhcpstop)
 {	
 	//encrypt password
 	//$wpa_passphrase = shell_exec("wpa_passphrase $ssid $passw");
@@ -286,19 +321,32 @@ function configWiFi($en,$name,$ccode,$mode,$ssid,$passw,$staticipSw,$ipaddress,$
 	//$endpos = strpos($wpa_passphrase, "\n",$startpos);
 	//$passw = substr($wpa_passphrase,$startpos,$endpos-$startpos);
 	
+	if($mode == 'false') wpa_supplicant_conf($id,$en,$name,$ssid,$passw);
+	
 	if($en == 'true')	//adapter enabled
 	{
 		if($mode == 'true') //AP mode
 		{			
-			wpa_supplicant_conf("","","");	//remove the ochin_web script from the wpa_supplicant file
 			dhcpcd_conf($name,$ipaddress,mask2cidr($netmask));	//configure the static ip of the AP
 			dnsmasq_conf(true,$name,$ipaddress,$netmask,$dhcpstart,$dhcpstop);	//configure the DHCP server config or disable
 			hostapd_conf(true,$name,$ccode,$ssid,$passw);	//configure AP ssid, passwd, ccode etc..  or disable
-			hostapdStart(true);	//start hostapd service and reboot
+			sleep(4);	//wait for the command to be executed by the background worker
+			editServiceFile("hostapd","","","","","","sysEnable");	//start hostapd service 
+			//sleep(4);	//wait for the command to be executed by the background worker
+			//editServiceFile("daemon-reload","","","","","","sysUnit");
+			//sleep(4);	//wait for the command to be executed by the background worker
+			//editServiceFile("dnsmasq","","","","","","sysReload");	//reload dnsmasq service 
+			//sleep(4);
+			//editServiceFile("dhcpcd","","","","","","sysReload");	//reload dhcpcd service  
+			//sleep(4);	//wait for the command to be executed by the background worker
+			//editServiceFile("hostapd","","","","","","sysLoad");	//start hostapd service 
 		}
 		else	//sta mode
 		{
-			if(strstr(getAPdevice(),$name)!=False) hostapdStart(false);	//stop hostapd service only if this int was used as AP
+			//if(strstr(getAPdevice(),$name)!=False) 
+			//editServiceFile("hostapd","","","","","","sysUnload");	//start hostapd service 
+			//sleep(4);	//wait for the command to be executed by the background worker
+			editServiceFile("hostapd","","","","","","sysDisable");	//stop hostapd service only if this int was used as AP
 			if($staticipSw == 'true')
 			{
 				dhcpcd_conf($name,$ipaddress,mask2cidr($netmask));	//configure the static IP of the client or leave it in auto (DHCP) mode	
@@ -307,16 +355,18 @@ function configWiFi($en,$name,$ccode,$mode,$ssid,$passw,$staticipSw,$ipaddress,$
 			{
 				dhcpcd_conf("","","");
 			}
-			wpa_supplicant_conf($name,$ssid,$passw);
+			wpa_supplicant_conf($id,$en,$name,$ssid,$passw);
 			dnsmasq_conf(false,$name,$ipaddress,$netmask,$dhcpstart,$dhcpstop);	//remove the DHCP server config 
 			hostapd_conf(false,$name,$ccode,$ssid,$passw);	//remove the AP ssid, passwd, ccode etc..  
+			removeFile("/etc/dhcpcd.conf");
+			//sleep(4);	//wait for the command to be executed by the background worker
+			//editServiceFile("daemon-reload","","","","","","sysUnit");
+			//sleep(4);	//wait for the command to be executed by the background worker
+			//editServiceFile("dnsmasq","","","","","","sysReload");	//reload dnsmasq service 
+			//sleep(4);	//wait for the command to be executed by the background worker
+			//editServiceFile("dhcpcd","","","","","","sysReload");	//reload dhcpcd service  
 		}
 	}
-	else
-	{
-		removeFile("/etc/dhcpcd.conf");
-		removeFile("/etc/wpa_supplicant/wpa_supplicant.conf");
-	}	
 }
 
 ?>

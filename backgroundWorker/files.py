@@ -7,6 +7,7 @@ import shutil
 import os
 import subprocess
 import logging
+from pwd import getpwnam
  
 def moveFile(source, dest):
     if(os.path.exists(source)):

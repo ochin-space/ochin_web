@@ -31,7 +31,14 @@ def enableService(name):
             logging.debug("Service enabled");     
         else:
             logging.warning("Error enabling service");     
-            return False;                   
+            return False;
+    elif(is_enabled==b'masked\n'):
+        logging.warning("Service Unmask Failed");     
+        return False;
+    elif(is_enabled==b'enabled\n'):
+        logging.warning("Service already enabled");     
+        return True;
+        
     #if(is_enabled==b'enabled\n'): 
     #    is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                            
     #    if(is_active==b'inactive\n'):       
@@ -75,7 +82,12 @@ def disableService(name):
     #    else:
     #        return True;
     return False;
-
+    
+#start an existing unit        
+def startUnit(name):
+    subprocess.run(["sudo","systemctl",name]); 
+    return True;
+    
 #start an existing service        
 def startService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
@@ -94,7 +106,26 @@ def startService(name):
             logging.error("Error loading system service");
             return False;
     return False;
-  
+
+#start an existing service        
+def restartService(name):
+    is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
+    if(is_enabled==b'masked\n'): 
+        subprocess.run(["sudo","systemctl","unmask",name+".service"]);   
+        logging.debug("System service unmasked");      
+    if(is_enabled!=b'masked\n'): 
+        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                    
+        if(is_active==b'inactive\n'): 
+            subprocess.run(["sudo","systemctl","restart",name+".service"]); 
+        is_active = subprocess.Popen(["sudo","systemctl","is-active",name+".service"], stdout=subprocess.PIPE).communicate()[0];                           
+        if(is_active==b'active\n'):                       
+            logging.debug("System service loaded");
+            return True;
+        else:
+            logging.error("Error loading system service");
+            return False;
+    return False;
+    
 #stop an existing service        
 def stopService(name):
     is_enabled = subprocess.Popen(["sudo","systemctl","is-enabled",name+".service"], stdout=subprocess.PIPE).communicate()[0];
@@ -126,30 +157,58 @@ def services(source, whitelistFile, whitelistSysFile):
         logging.info("Systemctl Services \""+services2manage[i]+"\" managing process:");
         items = ElementTree.parse(source+services2manage[i]).getroot(); 
         for j in range(len(items)):     
-            name = items[j].attrib['name']; #module name
+            name = items[j].attrib['name']; #service name
             if name is None:
                 name = "dummyname";                
-            old_name = items[j][0].text;  #module old name
+            old_name = items[j][0].text;  #service old name
             if old_name is None:
                 old_name = " ";                            
-            action = items[j][1].text;  #module action
+            action = items[j][1].text;  #service action
             if action is None:
                 action = " ";                
-            cmd_line = items[j][2].text;  #module cmd_line  
+            cmd_line = items[j][2].text;  #service cmd_line  
             if cmd_line is None:
                 cmd_line = " ";                
-            unitOptions = items[j][3].text;  #unit module options
+            unitOptions = items[j][3].text;  #unit options
             if unitOptions is None:
                 unitOptions = " ";                
-            serviceOptions = items[j][4].text;  #service module options
+            serviceOptions = items[j][4].text;  #service options
             if serviceOptions is None:
                 serviceOptions = " ";                
-            installOptions = items[j][5].text;  #install module options     
+            installOptions = items[j][5].text;  #install options     
             if installOptions is None:
                 installOptions = " ";                
+             
+            #load a system unit
+            if(action=="sysUnit"):
+                logging.info("Load a system unit");
+                #check if the service is present in the system service whitelist 
+                if name in whitelistSysServices:
+                    logging.debug("The unit \""+name+"\" is in the system service whitelist.");
+                    if(startUnit(name)):
+                        logging.info("System unit loaded");
+                    else:
+                        logging.warning("Error loading system unit");
                         
+                else: 
+                    logging.warning("The unit \""+name+"\" was not in the system service whitelist.\nThe service cannot be loaded.");
+
             #load a system service
-            if(action=="sysLoad"):
+            elif(action=="sysReload"):
+                logging.info("Reload a system service");
+                #check if the service is present in the system service whitelist 
+                if name in whitelistSysServices:
+                    logging.debug("The service \""+name+"\" is in the system service whitelist.");
+                    if(restartService(name)):
+                        logging.info("System service reloaded");
+                    else:
+                        logging.warning("Error reloading system service");
+                        
+                else: 
+                    logging.warning("The service \""+name+"\" was not in the system service whitelist.\nThe service cannot be loaded.");
+  
+            #load a system service
+            elif(action=="sysLoad"):
                 logging.info("Load a system service");
                 #check if the service is present in the system service whitelist 
                 if name in whitelistSysServices:

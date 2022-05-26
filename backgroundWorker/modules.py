@@ -9,7 +9,6 @@ import logging
 from files import *
 from xml.etree import ElementTree
 
-#create a new module
 def createModule(name, cmd_line, options):
     logging.debug("The \""+name+"\" module will be updated!");    
     with open("/etc/modules-load.d/"+name+".conf", 'w') as file:
@@ -21,7 +20,6 @@ def createModule(name, cmd_line, options):
         file.write(script);
         file.close();
           
-#module manager
 def kernelModules(source, whitelistFile):
     with open(whitelistFile, "r") as file:
         whitelistModules = file.read().split('\n');

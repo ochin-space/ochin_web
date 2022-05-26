@@ -8,10 +8,8 @@ import logging
 from files import *
 from modules import *
 from services import *
-from pwd import getpwnam
   
 def main():
-    #the process look for updates every sec
     while(True):
         files2update(sourcefolder+"files2update", sourcefolder+"update_whitelist.txt");
         files2append(sourcefolder+"files2append", sourcefolder+"append_whitelist.txt");
@@ -21,7 +19,6 @@ def main():
         time.sleep(1);   
         
 if __name__ == "__main__":    
-    #check for the args
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
     
@@ -29,13 +26,13 @@ if __name__ == "__main__":
         raise SystemExit("Usage: {sys.argv[0]} (-source folder | -logsPath path_of_the_log_files | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...")
     elif "-source" in opts:
         sourcefolder = args[opts.index("-source")];
-        print("The source folder is: \""+sourcefolder+"\"");        
-        checkEmptyFolders(sourcefolder);    #create the missing folders (after cloning from the github repo, some empty folder are missing)
+        print("The source folder is: \""+sourcefolder+"\"");
+        checkEmptyFolders(sourcefolder);
         if "-logsPath" in opts:
             logsPath = args[opts.index("-logsPath")];
             print("The log files path is: \""+logsPath+"\"");            
             if "-logging" in opts:
-                loglevel = args[opts.index("-logging")];    #select the required logging level, from "info" to "critical"
+                loglevel = args[opts.index("-logging")];
                 if(loglevel!="DEBUG" and loglevel!="INFO" and loglevel!="WARNING" and loglevel!="ERROR" and loglevel!="CRITICAL"):
                     print("The \""+loglevel+"\" logging level is not available, please choose one level in the list\n");
                     raise SystemExit("Usage: {sys.argv[0]} (-source folder | -logging (DEBUG | INFO | WARNING | ERROR | CRITICAL) | -h) <arguments>...");

@@ -1,2 +1,0 @@
-ttyd_Linux_Console
-Cloud9_IDE

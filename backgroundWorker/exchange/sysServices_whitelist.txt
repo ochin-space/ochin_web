@@ -1,2 +1,4 @@
 hostapd
 dnsmasq
+dhcpcd
+daemon-reload
