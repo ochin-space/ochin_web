@@ -135,7 +135,7 @@ if(isset($_SESSION["loggedin"]) && ($_SESSION["loggedin"]==true))
 											<td value="<?php echo $row['APmode']; ?>"><?php echo $row['APmode']; ?></td>
 											<td value="<?php echo $row['static']; ?>"><?php echo $row['static']; ?></td>
 											<td value="<?php echo $row['ssid']; ?>"><?php echo $row['ssid']; ?></td>
-											<td value="<?php echo $row['ipaddress']; ?>"><?php echo $row['ipaddress']; ?></td>
+											<td value="<?php echo $row['ipaddress']; ?>"><?php if($row['en']=='true' AND $row['running']=='true' AND $row['APmode']=='false' AND $row['static']=='false') echo $_SERVER['SERVER_ADDR']; else echo $row['ipaddress'];?></td><!--$row['ipaddress']; ?></td-->
 											<td value="<?php echo $row['netmask']; ?>"><?php echo $row['netmask']; ?></td>
 											<td value="<?php echo $row['dhcpIpStart']; ?>"><?php echo $row['dhcpIpStart']; ?></td>
 											<td value="<?php echo $row['dhcpIpStop']; ?>"><?php echo $row['dhcpIpStop']; ?></td>
@@ -462,17 +462,21 @@ function update()
 			return;
 		}
 		staticipSw = document.getElementById('staticIpSwitch').checked;
-		a = document.getElementById('ipAddr0').value;
-		b = document.getElementById('ipAddr1').value;
-		c = document.getElementById('ipAddr2').value;
-		d = document.getElementById('ipAddr3').value;
-		if(check_TCPIP_Quartet(a,b,c,d)) ipaddress = a + "\." + b + "\." + c + "\." + d; 
-		else 
+		if(staticipSw || mode)
 		{
-			document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid IP Address</p>";
-			$('#alertModal').modal('show');
-			return;
+			a = document.getElementById('ipAddr0').value;
+			b = document.getElementById('ipAddr1').value;
+			c = document.getElementById('ipAddr2').value;
+			d = document.getElementById('ipAddr3').value;
+			if(check_TCPIP_Quartet(a,b,c,d)) ipaddress = a + "\." + b + "\." + c + "\." + d; 
+			else 
+			{
+				document.getElementById('alertModalbody').innerHTML = "<p>Please enter a valid IP Address</p>";
+				$('#alertModal').modal('show');
+				return;
+			}			
 		}
+		else ipaddress = "assigned by the dhcp server";
 		
 		a = document.getElementById('nm0').value;
 		b = document.getElementById('nm1').value;

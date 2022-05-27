@@ -33,10 +33,19 @@ sudo sed -i 's/;extension=pdo_sqlite/extension=pdo_sqlite/g' /etc/php/7.4/apache
 #move ochin_web to the www folder
 sudo mv  ../ochin_web /var/www/html
 sudo cp favicon.ico ../
-#www-data own the folder
+#www-data owns the folder
 sudo chown -R www-data:www-data /var/www/html/ochin_web
 #secure the backgroundworker
 sudo chown -R root:root /var/www/html/ochin_web/backgroundWorker
+sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/logs
+sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2append
+sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2remove
+sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2update
+sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/modules
+sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/services
+sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/services_whitelist.txt
+#give read permission for wpa_supplicant.conf  to all
+sudo chmod 604 /etc/wpa_supplicant/wpa_supplicant.conf	
 
 #redirect to ochin_web
 echo "rewrite engine on and point to /ochin"

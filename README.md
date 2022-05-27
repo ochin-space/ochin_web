@@ -7,7 +7,7 @@
 <p>The software also integrates an addons manager that allows you to load additional packages to increase the functionality of the system. These packages will be released as side projects of the ochin_web, part of the ochin project itself.</p>
 <p>They will be included in the following list from time to time:</p>
 <ol>
-<li><a href="">Local Atlas</a>, This addon allows you to download and manage geographic maps locally quickly and easily.</li>
+<li><a href="https://github.com/ochin-space/ochin_web-atlas">Local Atlas</a>, This addon allows you to download and manage geographic maps locally quickly and easily.</li>
 </ol>
 
 <h3>How to install ochin_web</h3>
@@ -103,13 +103,18 @@ So in summary it can be said that the changes can be made from the web only if c
 <h4>WiFi Config</h4>
 
 ![Alt text](images/network.png?raw=true&=200x "network config")
-<p>The "Network Configuration" is web a tool that allows you to modify the configuration of the network adapters.All the adapter connected to the board are displayed in a table that allows you to edit them configuration.</p>
+<p>The "Network Configuration" is web a tool that allows you populate a table wich contains several network configurations.</p>
+<p>Create a new Configuration</p>
+By pressing the "Add New Network Config +" icon on the top right edge of the table, you create a new empty row in the table. Once the new row is created you can edit your new network configuration. 
 <p>Edit the configuration</p>
-<p>By pressing the "edit" button corresponding to the adapter of interest, a popup will be opened, from which it is possible to modify the network configuration. On the top of the modal windows there is the name of the adapter. The first switch is enabled by default and let you Enable / Disable the adapter. If the selected adapter is enabled, it is possible to choose wether to configure it as an access point or as a device connected to another WLAN. If You want to configure the adapter to connect to a certain WLAN, you just have to fill the two fieds below: SSID and Password.
-Selecting the next switch is possible to set a static IP_Address and SubnetMask instead of using the DHCP.</p>
+<p>By pressing the "edit" button corresponding to the row of interest, a popup will be opened, from which it is possible to modify the network configuration.On the top of the modal windows there is a selection box with a list of the available adapters.The first switch is used to Enable or Disable the configuration.</p>
 <p>
 In case you want to create an Access Point, the first switch should be selected and new fields will be shown.
 The SSID and Password are still there, but in AP mode those represent the brand new WLAN that it's going to be created. </p>
+<p>The second switch is used to configure the adapter in access point mode or station mode.
+To configure the adapter to connect to a certain WLAN, you just have to fill the two fieds below: SSID and Password.
+Selecting the next switch is possible to set a static IP_Address and SubnetMask instead of using the DHCP.</p>
+<p>n case you want to create an Access Point, the proper switch should be selected and new fields will be shown. The SSID and Password are still there, but in AP mode those represent the brand new WLAN that it's going to be created. The Country Code must be filled and depends on the Country where you want to create the WLAN. The IP_Address and NetMask are related to the board, wich works as a gateway.The DHCP is enabled by default and the DHCP_start and DHCP_end represent the range of IPs that will be assigned to the connected clients.</p>
 <h4>Hardware Configuration</h4>
 
 ![Alt text](images/hwconfig.png?raw=true&=200x "Hardware Configuration")
