@@ -7,7 +7,9 @@
 <p>The software also integrates an addons manager that allows you to load additional packages to increase the functionality of the system. These packages will be released as side projects of the ochin_web, part of the ochin project itself.</p>
 <p>They will be included in the following list from time to time:</p>
 <ol>
+<li><a href="https://github.com/ochin-space/ochin_web-Template">Addon Template</a>, This template was made to help develop new Addon from scratch.</li>
 <li><a href="https://github.com/ochin-space/ochin_web-atlas">Local Atlas</a>, This addon allows you to download and manage geographic maps locally quickly and easily.</li>
+<li><a href="https://github.com/ochin-space/ochin_web-liveView">Live View</a>, This addon allows you to display up to four video streams within a web page.</li>
 </ol>
 
 <h3>How to install ochin_web</h3>
