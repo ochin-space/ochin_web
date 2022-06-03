@@ -20,7 +20,7 @@ To install the software it is necessary to prepare the Raspberry Pi board with a
 #Install the git package
 sudo apt-get install git -y
 #Clone the ochin_web git repo with the following command:
-sudo git clone https://github_token@github.com/ochin-space/ochin_web
+sudo git clone https://github.com/ochin-space/ochin_web
 ```
 
 In order to run, ochin_web needs additional software (apache, php, sqlite3 etc..) and it's also needed to setup some permissions. 
