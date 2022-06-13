@@ -9,22 +9,36 @@ require 'helper/init.php';
 // create new user and topbar tables if it doesn't already exist
 $dbConstructor_main->createTableUsers();
 $dbConstructor_main->createTableAddons();
- 
+$name="";
+$email="";
+$password="";
+
 if((isset($_POST['email']) || isset($_POST['name'])) && isset($_POST['password'])) {
-    if($result = $dbConstructor_main->checkUsers_Credentials($_POST['email'],$_POST['name'],$_POST['password']))
+	$name=$_POST['name'];
+	$email=$_POST['email'];
+	$password=$_POST['password'];
+}
+else if((isset($_GET['email']) || isset($_GET['name'])) && isset($_GET['password'])) {
+	$name=$_GET['name'];
+	$email=$_GET['email'];
+	$password=$_GET['password'];
+}
+
+if(($email!="" || $name!="") && $password!="") {
+    if($result = $dbConstructor_main->checkUsers_Credentials($email,$name,$password))
     {
         if(!empty($_POST["remember-me"])) {
-            if(isset($_POST['email']))
+            if($email!="")
             {
-                setcookie ("email",$_POST["email"],time()+ (10 * 365 * 24 * 60 * 60));
+                setcookie ("email",$email,time()+ (10 * 365 * 24 * 60 * 60));
             } 
-            if(isset($_POST['name']))
+            if($name!="")
             {
-                setcookie ("name",$_POST["name"],time()+ (10 * 365 * 24 * 60 * 60));
+                setcookie ("name",$name,time()+ (10 * 365 * 24 * 60 * 60));
             }
-            if(isset($_POST['password']))
+            if($password!="")
             {
-                setcookie ("password",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
+                setcookie ("password",$password,time()+ (10 * 365 * 24 * 60 * 60));
             }
         } else {
             if(isset($_COOKIE["name"])) {
@@ -47,7 +61,7 @@ if((isset($_POST['email']) || isset($_POST['name'])) && isset($_POST['password']
         else{
             $_SESSION["avatar"] = Config_main::uploadImgPath.$result['avatar'];
         }
-        $_SESSION["password"] = $_POST['password'];
+        $_SESSION["password"] = $password;
         header("location: index.php");
     } else {        
         $error = "Invalid Username or Password!";
