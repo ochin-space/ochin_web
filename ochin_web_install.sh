@@ -37,11 +37,17 @@ sudo cp favicon.ico ../
 sudo chown -R www-data:www-data /var/www/html/ochin_web
 #secure the backgroundworker
 sudo chown -R root:root /var/www/html/ochin_web/backgroundWorker
+sudo mkdir /var/www/html/ochin_web/backgroundWorker/exchange/logs
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/logs
+sudo mkdir /var/www/html/ochin_web/backgroundWorker/exchange/files2append
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2append
+sudo mkdir /var/www/html/ochin_web/backgroundWorker/exchange/files2remove
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2remove
+sudo mkdir /var/www/html/ochin_web/backgroundWorker/exchange/files2update
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/files2update
+sudo mkdir /var/www/html/ochin_web/backgroundWorker/exchange/modules
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/modules
+sudo mkdir /var/www/html/ochin_web/backgroundWorker/exchange/services
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/services
 sudo chown www-data:www-data /var/www/html/ochin_web/backgroundWorker/exchange/services_whitelist.txt
 #give read permission for wpa_supplicant.conf  to all
